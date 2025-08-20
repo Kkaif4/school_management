@@ -1,17 +1,25 @@
-"use client"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
-export default function Navbar() {
+const Navbar = () => {
   return (
-    <nav className="flex justify-between items-center px-8 py-4 bg-white shadow">
-      <h1 className="text-2xl font-bold text-teal-600">EduManage</h1>
-      <div className="hidden md:flex gap-6 text-slate-700 font-medium">
-        <Link href="#features">Features</Link>
-        <Link href="#how">How it Works</Link>
-        <Link href="#demo">Demo</Link>
+    <div className='flex items-center justify-between p-4'>
+      {/* SEARCH BAR */}
+      <div className='hidden md:flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2'>
+        <Image src="/search.png" alt="" width={14} height={14}/>
+        <input type="text" placeholder="Search..." className="w-[200px] p-2 bg-transparent outline-none"/>
       </div>
-      <Button className="bg-teal-600 hover:bg-teal-700">Get Started</Button>
-    </nav>
+      {/* ICONS AND USER */}
+      <div className='flex items-center gap-6 justify-end w-full'>
+        
+       
+        <div className='flex flex-col'>
+          <span className="text-xs leading-3 font-medium">John Doe</span>
+          <span className="text-[10px] text-gray-500 text-right">Admin</span>
+        </div>
+        <Image src="/avatar.png" alt="" width={36} height={36} className="rounded-full"/>
+      </div>
+    </div>
   )
 }
+
+export default Navbar

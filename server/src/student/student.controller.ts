@@ -13,6 +13,7 @@ import { AuthGuard } from '../auth/guard/auth.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../decorator/roles.decorator';
 import { UserRole } from '../schema/user.schema';
+import { CreateStudentDto } from './dto/create-student.dto';
 
 @Controller('student')
 @UseGuards(AuthGuard, RolesGuard)
@@ -21,8 +22,8 @@ export class StudentController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
-  create(@Body() createStudentDto: any) {
-    return this.studentService.create(createStudentDto);
+  async create(@Body() createStudentDto: CreateStudentDto) {
+    return await this.studentService.create(createStudentDto);
   }
 
   @Get()

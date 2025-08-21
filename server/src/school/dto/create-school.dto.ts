@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsMongoId,
 } from 'class-validator';
-import { Mongoose, Types } from 'mongoose';
 
 export class CreateSchoolDto {
   @ApiProperty({

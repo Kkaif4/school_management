@@ -7,8 +7,8 @@ import { SchoolModule } from './school/school.module';
 import { APP_PIPE } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ClassModule } from './class/class.module';
 import { StudentModule } from './student/student.module';
+import { CertificateModule } from './certificate/certificate.module';
 
 @Module({
   imports: [
@@ -19,8 +19,8 @@ import { StudentModule } from './student/student.module';
     AuthModule,
     UserModule,
     SchoolModule,
-    ClassModule,
     StudentModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [

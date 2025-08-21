@@ -11,8 +11,18 @@ export class StudentService {
   ) {}
 
   async create(createStudentDto: any): Promise<Student> {
-    const student = await this.studentModel.create(createStudentDto);
-    return student;
+    try {
+      const school = await this.studentModel.findOne(createStudentDto.schoolId);
+      if (!school) {
+        throw new NotFoundException('School not found');
+      }
+
+      const student = await this.studentModel.create(createStudentDto);
+
+      return student;
+    } catch (error) {
+      throw new NotFoundException('Student not found');
+    }
   }
 
   async findAll(): Promise<Student[]> {

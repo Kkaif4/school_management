@@ -1,54 +1,90 @@
 import { useState, useEffect } from 'react';
+import { AuthResponse } from '../api/auth';
 
-interface User {
+type User = {
   id: string;
+  name: string;
   email: string;
-  role: 'ADMIN' | 'SUB_ADMIN' | 'TEACHER';
-  schoolId?: string;
+  role: string;
+};
+
+type AuthData = {
+  success: boolean;
+  message: string;
   token: string;
-}
+  user: User;
+};
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [data, setData] = useState<AuthData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initAuth = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser: AuthData = JSON.parse(storedUser);
+          setData(parsedUser);
+        } catch (error) {
+          console.error('Failed to parse stored user:', error);
+          localStorage.removeItem('user');
+        }
+      }
+
+      setLoading(false);
+    };
+
+    initAuth();
+
+    // Sync across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        if (e.newValue) {
+          setData(JSON.parse(e.newValue) as AuthData);
+        } else {
+          setData(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const login = (userData: User) => {
+  const login = (authResponse: AuthResponse) => {
+    if (!authResponse?.success)
+      throw new Error(authResponse?.message || 'Login failed');
+
+    const userData: AuthData = {
+      success: authResponse.success,
+      message: authResponse.message,
+      token: authResponse.token,
+      user: authResponse.user,
+    };
+
     localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    setData(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('user');
-    setUser(null);
+    setData(null);
   };
 
   const hasRole = (roles: string[]): boolean => {
-    return user ? roles.includes(user.role) : false;
+    if (!data || !data.user) return false;
+    return roles.includes(data.user.role);
   };
 
-  const getSchoolId = (): string | undefined => {
-    return user?.schoolId;
-  };
-
-  const isAuthenticated = (): boolean => {
-    return !!user;
-  };
+  const isAuthenticated = (): boolean => !!data;
 
   return {
-    user,
+    data,
     loading,
     login,
     logout,
     hasRole,
-    getSchoolId,
     isAuthenticated,
   };
 };

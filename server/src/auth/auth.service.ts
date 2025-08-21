@@ -5,10 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/schema/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RegisterResponseDto } from './dto/register-response.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
-import { LoginResponseDto } from './dto/login-response.dto';
-import { Roles } from 'src/decorator/roles.decorator';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +16,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
     const user = await this.userModel.findOne({ email }).select('+password');
 
@@ -36,25 +34,40 @@ export class AuthService {
 
     const response = {
       success: true,
-      message: `${user.role} logged in successfully`,
-      token,
-      role: user.role,
+      message: `User logged in successfully`,
+      token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      },
     };
 
     return response;
   }
 
-  async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
+  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const { email } = registerDto;
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
       throw new UnauthorizedException('Email already exists');
     }
     const user = await this.userModel.create(registerDto);
+
+    const payload = { id: user._id };
+    const token = this.jwtService.sign(payload);
+
     const response = {
       success: true,
       message: `User registered successfully`,
-      data: user,
+      token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      },
     };
     return response;
   }

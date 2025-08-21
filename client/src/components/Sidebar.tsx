@@ -24,38 +24,32 @@ export const Sidebar = () => {
           Dashboard
         </Link>
 
-        {/* Admin only links */}
-        {hasRole(['ADMIN']) && (
-          <>
-            <Link
-              href="/schools"
-              className="block px-4 py-2 hover:bg-gray-700 rounded">
-              Manage Schools
-            </Link>
-            <Link
-              href="/sub-admins"
-              className="block px-4 py-2 hover:bg-gray-700 rounded">
-              Manage Sub Admins
-            </Link>
-          </>
+        {hasRole(['super_admin']) && (
+          <Link
+            href="/users"
+            className="block px-4 py-2 hover:bg-gray-700 rounded">
+            Users
+          </Link>
         )}
 
-        {/* Admin and Sub Admin links */}
-        {hasRole(['ADMIN', 'SUB_ADMIN']) && (
-          <>
-            <Link
-              href="/teachers"
-              className="block px-4 py-2 hover:bg-gray-700 rounded">
-              Manage Teachers
-            </Link>
-          </>
+        {hasRole(['admin', 'super_admin']) && (
+          <Link
+            href="/schools"
+            className="block px-4 py-2 hover:bg-gray-700 rounded">
+            Schools
+          </Link>
         )}
 
-        {/* All roles have access */}
+        <Link
+          href="/teachers"
+          className="block px-4 py-2 hover:bg-gray-700 rounded">
+          Teachers
+        </Link>
+
         <Link
           href="/students"
           className="block px-4 py-2 hover:bg-gray-700 rounded">
-          Manage Students
+          Students
         </Link>
 
         <button

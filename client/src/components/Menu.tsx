@@ -26,7 +26,7 @@ export default function Menu({ role }: { role: Role }) {
           <span className="hidden lg:block text-gray-400 font-light my-4">
             {group.title}
           </span>
-          {group.items.map((item) => (
+          {group.items.map((item : any) => (
             <Link
               key={item.href}
               href={item.href}

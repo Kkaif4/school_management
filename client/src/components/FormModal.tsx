@@ -18,12 +18,11 @@ const StudentForm = dynamic(() => import("./forms/StudentForm"), {
 });
 
 const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
+  [key: string]: (type: "create" | "update", data: any, closeModal: () => void) => JSX.Element;
 } = {
-  teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />,
-  school: (type, data) => <SchoolForm type={type} data={data} />,
-
+  // teacher: (type, data, closeModal) => <TeacherForm type={type} data={data} closeModal={closeModal} />,
+  student: (type, data, closeModal) => <StudentForm type={type} data={data} closeModal={closeModal} />,
+  // school: (type, data, closeModal) => <SchoolForm type={type} data={data} closeModal={closeModal} />,
 };
 
 const FormModal = ({
@@ -47,7 +46,7 @@ const FormModal = ({
     | "announcement";
   type: "create" | "update" | "delete";
   data?: any;
-  id?: number;
+  id?: string | number;
 }) => {
   const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
   const bgColor =
@@ -70,7 +69,7 @@ const FormModal = ({
         </button>
       </form>
     ) : type === "create" || type === "update" ? (
-      forms[table](type, data)
+      forms[table](type, data, () => setOpen(false))
     ) : (
       "Form not found!"
     );

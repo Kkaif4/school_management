@@ -41,7 +41,7 @@ const TeacherAttendancePage = () => {
         <div className="w-full lg:w-1/3 flex flex-col gap-4">
           {/* CLASS ATTENDANCE SUMMARY */}
           <div className="bg-white p-6 rounded-md">
-            <h3 className="text-lg font-semibold mb-4">Today's Attendance</h3>
+            <h3 className="text-lg font-semibold mb-4">Todays Attendance</h3>
             <div className="space-y-3">
               {classAttendance.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">

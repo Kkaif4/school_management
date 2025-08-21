@@ -15,6 +15,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document);
-  await app.listen(process.env.PORT ?? 3000);
+
+  app.enableCors({
+  origin: "http://localhost:3000", // Next.js dev server
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+});
+
+  await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();

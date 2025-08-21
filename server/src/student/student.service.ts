@@ -26,34 +26,21 @@ export class StudentService {
   }
 
   async findAll(): Promise<Student[]> {
-    return this.studentModel.find().populate(['school', 'class']);
+    return this.studentModel.find();
   }
 
   async findBySchool(schoolId: string): Promise<Student[]> {
     if (!Types.ObjectId.isValid(schoolId)) {
       throw new NotFoundException('School not found');
     }
-    return this.studentModel
-      .find({ school: schoolId })
-      .populate(['school', 'class']);
-  }
-
-  async findByClass(classId: string): Promise<Student[]> {
-    if (!Types.ObjectId.isValid(classId)) {
-      throw new NotFoundException('Class not found');
-    }
-    return this.studentModel
-      .find({ class: classId })
-      .populate(['school', 'class']);
+    return this.studentModel.find({ school: schoolId });
   }
 
   async findOne(id: string): Promise<Student> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Student not found');
     }
-    const student = await this.studentModel
-      .findById(id)
-      .populate(['school', 'class']);
+    const student = await this.studentModel.findById(id);
     if (!student) {
       throw new NotFoundException('Student not found');
     }
@@ -64,9 +51,11 @@ export class StudentService {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Student not found');
     }
-    const student = await this.studentModel
-      .findByIdAndUpdate(id, updateStudentDto, { new: true })
-      .populate(['school', 'class']);
+    const student = await this.studentModel.findByIdAndUpdate(
+      id,
+      updateStudentDto,
+      { new: true },
+    );
     if (!student) {
       throw new NotFoundException('Student not found');
     }

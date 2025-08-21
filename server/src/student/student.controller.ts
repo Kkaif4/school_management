@@ -38,12 +38,6 @@ export class StudentController {
     return this.studentService.findBySchool(schoolId);
   }
 
-  @Get('class/:classId')
-  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
-  findByClass(@Param('classId') classId: string) {
-    return this.studentService.findByClass(classId);
-  }
-
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   findOne(@Param('id') id: string) {

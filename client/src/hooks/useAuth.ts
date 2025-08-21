@@ -1,21 +1,54 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
 
-export default function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const router = useRouter();
+interface User {
+  id: string;
+  email: string;
+  role: 'ADMIN' | 'SUB_ADMIN' | 'TEACHER';
+  schoolId?: string;
+  token: string;
+}
+
+export const useAuth = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
-      router.push("/");
-    } else {
-      setIsAuthenticated(true);
-      setToken(storedToken);
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  }, [router]);
+    setLoading(false);
+  }, []);
 
-  return { isAuthenticated, token };
-}
+  const login = (userData: User) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  const hasRole = (roles: string[]): boolean => {
+    return user ? roles.includes(user.role) : false;
+  };
+
+  const getSchoolId = (): string | undefined => {
+    return user?.schoolId;
+  };
+
+  const isAuthenticated = (): boolean => {
+    return !!user;
+  };
+
+  return {
+    user,
+    loading,
+    login,
+    logout,
+    hasRole,
+    getSchoolId,
+    isAuthenticated,
+  };
+};

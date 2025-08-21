@@ -8,6 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { Roles } from 'src/decorator/roles.decorator';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +38,7 @@ export class AuthService {
       success: true,
       message: `${user.role} logged in successfully`,
       token,
+      role: user.role,
     };
 
     return response;

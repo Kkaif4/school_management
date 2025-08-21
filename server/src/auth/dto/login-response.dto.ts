@@ -17,4 +17,11 @@ export class LoginResponseDto {
     description: 'JWT access token',
   })
   token: string;
+
+  //role
+  @ApiProperty({
+    example: 'admin',
+    description: 'User role',
+  })
+  role: string;
 }

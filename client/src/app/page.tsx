@@ -1,37 +1,89 @@
-"use client";
-import { useState } from "react";
-import Head from "next/head";
-
-import MainNavbar from "@/components/MainNavbar";
-import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import Footer from "@/components/Footer";
-import AuthModal from "@/components/AuthModal";
+'use-client';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 
 export default function Home() {
-  const [showModal, setShowModal] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const toggleModal = () => setShowModal(!showModal);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        login(data);
+        router.push('/dashboard');
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Authentication failed');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Head>
-        <title>EduManage - School Management System</title>
-        <meta
-          name="description"
-          content="Modern school management solution"
-        />
-      </Head>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          {isLogin ? 'Login' : 'Register'}
+        </h1>
 
-      <MainNavbar isLogin={isLogin} toggleModal={toggleModal} />
-      <main>
-        <Hero />
-        <Features />
-      </main>
-      <Footer />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
 
-      <AuthModal showModal={showModal} toggleModal={toggleModal} />
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white rounded-md py-2 hover:bg-indigo-700">
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+        </form>
+
+        <button
+          onClick={() => setIsLogin(!isLogin)}
+          className="mt-4 w-full text-sm text-indigo-600 hover:text-indigo-800">
+          {isLogin
+            ? 'Need an account? Register'
+            : 'Already have an account? Login'}
+        </button>
+      </div>
     </div>
   );
 }

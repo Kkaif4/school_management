@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { School } from './school.schema';
-import { Class } from './class.schema';
 
 export enum Gender {
   MALE = 'male',
@@ -9,10 +8,28 @@ export enum Gender {
   OTHER = 'other',
 }
 
+export enum Divisions {
+  A = 'A',
+  B = 'B',
+  C = 'C',
+  D = 'D',
+  E = 'E',
+  F = 'F',
+  G = 'G',
+  H = 'H',
+  I = 'I',
+}
+
 @Schema({ timestamps: true })
 export class Student extends Document {
   @Prop({ required: true })
-  name: string;
+  firstName: string;
+
+  @Prop({ required: false })
+  middleName: string;
+
+  @Prop({ required: true })
+  lastName: string;
 
   @Prop({ required: true })
   dateOfBirth: Date;
@@ -23,23 +40,26 @@ export class Student extends Document {
   @Prop({ required: true })
   rollNumber: string;
 
+  @Prop({ required: true })
+  fatherName: string;
+
+  @Prop({ required: true })
+  motherName: string;
+
   @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
-  school: Types.ObjectId;
+  schoolId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Class.name, required: true, index: true })
-  class: Types.ObjectId;
+  @Prop({ required: true, min: 1, max: 12 })
+  grade: number;
 
-  @Prop()
-  guardianName: string;
+  @Prop({ required: true, enum: Divisions, default: Divisions.A })
+  division: Divisions;
 
-  @Prop()
-  guardianContact: string;
+  @Prop({ required: true })
+  contactNumber: string;
 
   @Prop({ required: true })
   address: string;
-
-  @Prop({ default: true })
-  isActive: boolean;
 }
 
 export const StudentSchema = SchemaFactory.createForClass(Student);

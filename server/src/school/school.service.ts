@@ -42,7 +42,7 @@ export class SchoolService {
       const existingSchool = await this.schoolModel.findOne({
         $and: [
           { name: createSchoolDto.name },
-          { admin: createSchoolDto.adminId },
+          { adminId: createSchoolDto.adminId },
         ],
       });
 

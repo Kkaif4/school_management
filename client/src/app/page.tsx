@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useState } from 'react';
 import Head from 'next/head';
 
@@ -33,8 +33,7 @@ export default function Home() {
             <div className="flex items-center">
               <button
                 onClick={toggleModal}
-                className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
+                className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 {isLogin ? 'Login' : 'Sign Up'}
               </button>
             </div>
@@ -50,7 +49,8 @@ export default function Home() {
               Modern School Management
             </h1>
             <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
-              Streamline your school operations with our comprehensive management system.
+              Streamline your school operations with our comprehensive
+              management system.
             </p>
           </div>
         </div>
@@ -59,7 +59,9 @@ export default function Home() {
         <div className="bg-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="lg:text-center">
-              <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
+              <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">
+                Features
+              </h2>
               <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
                 Everything you need to manage your school
               </p>
@@ -69,23 +71,28 @@ export default function Home() {
               {[
                 {
                   name: 'Student Management',
-                  description: 'Track student records, attendance, and performance all in one place.',
+                  description:
+                    'Track student records, attendance, and performance all in one place.',
                 },
                 {
                   name: 'Teacher Portal',
-                  description: 'Simplify grading, attendance, and communication with students and parents.',
+                  description:
+                    'Simplify grading, attendance, and communication with students and parents.',
                 },
                 {
                   name: 'Parent Access',
-                  description: 'Give parents real-time access to their children\'s progress and school updates.',
+                  description:
+                    "Give parents real-time access to their children's progress and school updates.",
                 },
                 {
                   name: 'Administration Tools',
-                  description: 'Manage schedules, fees, and school resources efficiently.',
+                  description:
+                    'Manage schedules, fees, and school resources efficiently.',
                 },
                 {
                   name: 'Reporting',
-                  description: 'Generate comprehensive reports for better decision making.',
+                  description:
+                    'Generate comprehensive reports for better decision making.',
                 },
                 {
                   name: 'Mobile Friendly',
@@ -103,8 +110,7 @@ export default function Home() {
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
-                            aria-hidden="true"
-                          >
+                            aria-hidden="true">
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -142,11 +148,19 @@ export default function Home() {
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={toggleModal}></div>
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true">
+              <div
+                className="absolute inset-0 bg-gray-500 opacity-75"
+                onClick={toggleModal}></div>
             </div>
 
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true">
+              &#8203;
+            </span>
 
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
               <div>
@@ -156,8 +170,7 @@ export default function Home() {
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                    stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -174,7 +187,9 @@ export default function Home() {
                     {isLogin ? (
                       <form className="space-y-6">
                         <div>
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Email address
                           </label>
                           <div className="mt-1">
@@ -190,7 +205,9 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="password"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Password
                           </label>
                           <div className="mt-1">
@@ -213,13 +230,17 @@ export default function Home() {
                               type="checkbox"
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                            <label
+                              htmlFor="remember-me"
+                              className="ml-2 block text-sm text-gray-900">
                               Remember me
                             </label>
                           </div>
 
                           <div className="text-sm">
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                            <a
+                              href="#"
+                              className="font-medium text-blue-600 hover:text-blue-500">
                               Forgot your password?
                             </a>
                           </div>
@@ -228,8 +249,7 @@ export default function Home() {
                         <div>
                           <button
                             type="submit"
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
+                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             Sign in
                           </button>
                         </div>
@@ -237,7 +257,9 @@ export default function Home() {
                     ) : (
                       <form className="space-y-6">
                         <div>
-                          <label htmlFor="name" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="name"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Full Name
                           </label>
                           <div className="mt-1">
@@ -252,7 +274,9 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Email address
                           </label>
                           <div className="mt-1">
@@ -268,7 +292,9 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label htmlFor="password" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="password"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Password
                           </label>
                           <div className="mt-1">
@@ -284,7 +310,9 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 text-left">
+                          <label
+                            htmlFor="confirm-password"
+                            className="block text-sm font-medium text-gray-700 text-left">
                             Confirm Password
                           </label>
                           <div className="mt-1">
@@ -301,8 +329,7 @@ export default function Home() {
                         <div>
                           <button
                             type="submit"
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
+                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             Create Account
                           </button>
                         </div>
@@ -315,8 +342,7 @@ export default function Home() {
                             Don't have an account?{' '}
                             <button
                               onClick={switchForm}
-                              className="font-medium text-blue-600 hover:text-blue-500"
-                            >
+                              className="font-medium text-blue-600 hover:text-blue-500">
                               Sign up
                             </button>
                           </>
@@ -325,8 +351,7 @@ export default function Home() {
                             Already have an account?{' '}
                             <button
                               onClick={switchForm}
-                              className="font-medium text-blue-600 hover:text-blue-500"
-                            >
+                              className="font-medium text-blue-600 hover:text-blue-500">
                               Login
                             </button>
                           </>

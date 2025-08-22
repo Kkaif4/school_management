@@ -25,7 +25,6 @@ export class UserController {
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.SUB_ADMIN)
   async create(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
-    console.log('hello');
     return await this.userService.create(createUserDto);
   }
 
@@ -34,15 +33,16 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  @Get('/teachers')
+  async findSchoolTeachers(@Query('school') schoolId: string) {
+    console.log('teachers route hit');
+    return await this.userService.findSchoolTeachers(schoolId);
   }
 
-  @Get('school-teachers')
-  findSchoolTeachers(@Query('schoolId') schoolId: string) {
-    console.log('hello');
-    return this.userService.findSchoolTeachers(schoolId);
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    console.log('findOne route hit');
+    return await this.userService.findOne(id);
   }
 
   @Patch(':id')

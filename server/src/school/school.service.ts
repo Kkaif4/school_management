@@ -64,17 +64,22 @@ export class SchoolService {
     }
   }
 
-  async findAll(): Promise<SchoolsArray> {
-    const schools = await this.schoolModel.find();
-    if (!schools || schools.length === 0) {
-      throw new NotFoundException('School not found');
+  async findAll(req: Request): Promise<SchoolsArray> {
+    const userId = req['user'].id.toString();
+    try {
+      const schools = await this.schoolModel.find({ adminId: userId });
+      if (!schools || schools.length === 0) {
+        throw new NotFoundException('School not found');
+      }
+      const response = {
+        success: true,
+        message: 'Schools found successfully',
+        data: schools,
+      };
+      return response;
+    } catch (error) {
+      throw new BadRequestException();
     }
-    const response = {
-      success: true,
-      message: 'Schools found successfully',
-      data: schools,
-    };
-    return response;
   }
 
   async findOne(id: string): Promise<SchoolResponseDto> {

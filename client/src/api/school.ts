@@ -7,6 +7,30 @@ export interface School {
   createdAt?: string;
 }
 
+export async function getSchoolById(id: string): Promise<{
+  school?: School;
+  error?: string;
+}> {
+  try {
+    const res = await api.get(`/school/${id}`);
+    const schoolData = res.data?.data;
+    if (!schoolData) {
+      return { error: 'School not found' };
+    }
+    const school: School = {
+      id: schoolData._id,
+      name: schoolData.name,
+      location: schoolData.address,
+      createdAt: schoolData.createdAt,
+    };
+    return { school };
+  } catch (err: any) {
+    const errorMsg = err?.response?.data?.message || 'Failed to fetch school';
+    console.error('API getSchoolById error:', errorMsg);
+    return { error: errorMsg };
+  }
+}
+
 export async function getSchools(): Promise<{
   schools: School[];
   error?: string;
@@ -19,7 +43,6 @@ export async function getSchools(): Promise<{
       location: s.address,
       createdAt: s.createdAt,
     }));
-
     return { schools };
   } catch (err: any) {
     const errorMsg =
@@ -33,7 +56,7 @@ export async function getSchools(): Promise<{
       return { schools: [], error: 'Please log in again to continue' };
     }
 
-    console.error('API getSchools error:', errorMsg);
+    console.log('API getSchools error:', errorMsg);
     return { schools: [], error: errorMsg };
   }
 }

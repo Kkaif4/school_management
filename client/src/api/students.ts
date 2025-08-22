@@ -32,7 +32,6 @@ export async function getStudents(schoolId: string): Promise<{
     return { students: res.data.data || [] };
   } catch (err: any) {
     const errorMsg = err?.response?.data?.message || 'Failed to fetch students';
-    console.error('API getStudents error:', errorMsg);
     return { students: [], error: errorMsg };
   }
 }

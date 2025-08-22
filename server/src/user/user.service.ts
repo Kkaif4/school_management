@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { isValidObjectId, Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from '../schema/user.schema';
@@ -61,23 +61,28 @@ export class UserService {
     return users;
   }
 
-  async findSchoolTeachers(schoolId: string): Promise<User[]> {
+  async findSchoolTeachers(schoolId: string) {
     console.log('hello im in service');
     try {
       const teachers = await this.userModel.find({
         schoolId,
         $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
       });
+
+      if (!teachers || teachers.length === 0) {
+        throw new NotFoundException('Teachers not found');
+      }
       return teachers;
     } catch (error) {
       throw new NotFoundException('Teachers not found');
     }
   }
+
   async findOne(id: string): Promise<UserResponseDto> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('User not found');
+    if (!isValidObjectId(id)) {
+      throw new NotFoundException('Invalid id');
     }
-    const user = await this.userModel.findById(id);
+    const user = await this.userModel.findById({ _id: id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -91,14 +96,9 @@ export class UserService {
 
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('User not found');
-    }
-
     const user = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .select('-password');
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -108,10 +108,6 @@ export class UserService {
 
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async remove(id: string): Promise<User> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('User not found');
-    }
-
     const user = await this.userModel.findByIdAndDelete(id);
     if (!user) {
       throw new NotFoundException('User not found');

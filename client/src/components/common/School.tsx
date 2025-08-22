@@ -1,13 +1,22 @@
 'use client';
 
 import { School } from '@/api/school';
+import { useSchoolStore } from '@/app/context/store';
 import { School as SchoolIcon, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface SchoolListProps {
   schools: School[];
 }
 
 export default function SchoolList({ schools }: SchoolListProps) {
+  const router = useRouter();
+  const { setSchool } = useSchoolStore();
+  const handleSchoolClick = (school: School) => {
+    setSchool(school);
+    router.push(`/school/${school.id}`);
+  };
+
   if (!schools.length) {
     return <p className="text-slate-500 italic">No schools found.</p>;
   }
@@ -17,10 +26,9 @@ export default function SchoolList({ schools }: SchoolListProps) {
       {schools.map((school, index) => (
         <div
           key={school.id || index}
-          className="bg-slate-50 hover:bg-slate-100 rounded-xl p-4 transition-all duration-200 cursor-pointer border border-transparent hover:border-indigo-200 group"
-        >
+          onClick={() => handleSchoolClick(school)}
+          className="bg-slate-50 hover:bg-slate-100 rounded-xl p-4 transition-all duration-200 cursor-pointer border border-transparent hover:border-indigo-200 group">
           <div className="flex items-start justify-between">
-            {/* Left Section */}
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">

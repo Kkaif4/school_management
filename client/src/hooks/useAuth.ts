@@ -27,7 +27,7 @@ export const useAuth = () => {
           const parsedUser: AuthData = JSON.parse(storedUser);
           setData(parsedUser);
         } catch (error) {
-          console.error('Failed to parse stored user:', error);
+          console.log('Failed to parse stored user:', error);
           localStorage.removeItem('user');
         }
       }

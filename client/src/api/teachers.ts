@@ -1,23 +1,14 @@
 import { api } from './axios';
-
 export interface Teacher {
   _id: string;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
+  name: string;
   email: string;
-  subject?: string;
-  qualification?: string;
-  contactNumber?: string;
-  address?: string;
-  gender?: 'male' | 'female' | 'other';
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  role: string;
   schoolId: string;
-}
-
-interface TeacherArrayResponse {
-  success: boolean;
-  message: string;
-  data: Teacher[];
+  __v: number;
 }
 
 export async function getTeachers(schoolId: string): Promise<{
@@ -25,9 +16,10 @@ export async function getTeachers(schoolId: string): Promise<{
   error?: string;
 }> {
   try {
-    const res = await api.get<TeacherArrayResponse>(`/user/school-teachers?schoolId=${schoolId}`);
-    console.log('hello');
-    return { teachers: res.data.data || [] };
+    console.log('schoolId', schoolId);
+    const res = await api.get<Teacher[]>(`/user/teachers?school=${schoolId}`);
+    console.log(res.data);
+    return { teachers: res.data };
   } catch (err: any) {
     const errorMsg = err?.response?.data?.message || 'Failed to fetch teachers';
     console.error('API getTeachers error:', errorMsg);

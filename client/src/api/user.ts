@@ -17,7 +17,7 @@ export async function updateUserProfile(userId: string, payload: any) {
 
     return await res.json();
   } catch (err) {
-    console.error('API updateUserProfile error:', err);
+    console.log('API updateUserProfile error:', err);
     throw err;
   }
 }

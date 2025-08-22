@@ -1,12 +1,12 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { getSchools } from "@/api/school";
-import { Settings, LogOut } from "lucide-react";
-import { SchoolsSection } from "@/components/SchoolsSection";
-import { ProfileCard } from "@/components/common/ProfileCard";
-import { WelcomeBanner } from "@/components/common/WelcomeBanner";
-import { useRouter } from "next/navigation";
+'use client';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { getSchools } from '@/api/school';
+import { Settings, LogOut } from 'lucide-react';
+import { SchoolsSection } from '@/components/SchoolsSection';
+import { ProfileCard } from '@/components/common/ProfileCard';
+import { WelcomeBanner } from '@/components/common/WelcomeBanner';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const { data, loading } = useAuth();
@@ -20,7 +20,7 @@ export default function Dashboard() {
         const result = await getSchools();
         setSchools(result.schools);
       } catch (error) {
-        console.error("API getSchools error:", error);
+        console.log('API getSchools error:', error);
       } finally {
         setLoadingSchools(false);
       }
@@ -28,13 +28,9 @@ export default function Dashboard() {
     loadSchools();
   }, []);
 
-  const handleAddSchool = () => {
-    console.log("Add school clicked");
-  };
-
   const logout = async () => {
-    localStorage.removeItem("user"); // clear session
-    router.push("/"); // ✅ navigate back
+    localStorage.removeItem('user');
+    router.push('/');
   };
 
   if (loading) {
@@ -74,8 +70,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={logout}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"
-              >
+                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition">
                 <LogOut className="w-4 h-4" />
                 Logout
               </button>
@@ -85,7 +80,7 @@ export default function Dashboard() {
       </header>
 
       <main className="px-6 py-8 max-w-7xl mx-auto">
-        <WelcomeBanner userName={data?.user.name || "User"} />
+        <WelcomeBanner userName={data?.user.name || 'User'} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
@@ -93,11 +88,7 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-2">
-            <SchoolsSection
-              schools={schools}
-              loadingSchools={loadingSchools}
-              onAddSchool={handleAddSchool}
-            />
+            <SchoolsSection schools={schools} loadingSchools={loadingSchools} />
           </div>
         </div>
       </main>

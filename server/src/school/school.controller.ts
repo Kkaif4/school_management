@@ -37,8 +37,8 @@ export class SchoolController {
   }
 
   @Get()
-  async findAll() {
-    return await this.schoolService.findAll();
+  async findAll(@Req() req: Request) {
+    return await this.schoolService.findAll(req);
   }
 
   @Get(':id')

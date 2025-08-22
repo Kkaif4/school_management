@@ -2,6 +2,13 @@ import { getStudents } from '@/api/students';
 import { getTeachers } from '@/api/teachers';
 
 export async function fetchDashboardData(id: string) {
+  if (!id) {
+    return {
+      students: [],
+      teachers: [],
+    };
+  }
+
   try {
     const [studentsRes, teachersRes] = await Promise.all([
       getStudents(id),
@@ -9,8 +16,8 @@ export async function fetchDashboardData(id: string) {
     ]);
 
     return {
-      students: studentsRes.students,
-      teachers: teachersRes.teachers,
+      students: studentsRes.students ?? [],
+      teachers: teachersRes.teachers ?? [],
     };
   } catch (err) {
     console.error('Error fetching dashboard data:', err);

@@ -1,20 +1,35 @@
 import { api } from './axios';
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
+export interface Student {
+  _id: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  dateOfBirth: Date;
+  gender?: 'male' | 'female' | 'other';
+  rollNumber?: string;
+  fatherName?: string;
+  motherName?: string;
+  schoolId: string;
+  division?: string;
   grade: string;
-  // Add other student properties as needed
+  contactNumber?: string;
+  address?: string;
 }
 
-export async function getStudents(): Promise<{
+interface StudentArrayResponse {
+  success: boolean;
+  message: string;
+  data: Student[];
+}
+
+export async function getStudents(schoolId: string): Promise<{
   students: Student[];
   error?: string;
 }> {
   try {
-    const res = await api.get('/students');
-    return { students: res.data.students || [] };
+    const res = await api.get<StudentArrayResponse>(`/student/${schoolId}`);
+    return { students: res.data.data || [] };
   } catch (err: any) {
     const errorMsg = err?.response?.data?.message || 'Failed to fetch students';
     console.error('API getStudents error:', errorMsg);

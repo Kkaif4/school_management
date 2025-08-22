@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { AuthResponse } from '../api/auth';
 
-type User = {
+export type User = {
   id: string;
   name: string;
   email: string;
   role: string;
 };
 
-type AuthData = {
+export type AuthData = {
   success: boolean;
   message: string;
   token: string;

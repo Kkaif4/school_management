@@ -61,6 +61,18 @@ export class UserService {
     return users;
   }
 
+  async findSchoolTeachers(schoolId: string): Promise<User[]> {
+    console.log('hello im in service');
+    try {
+      const teachers = await this.userModel.find({
+        schoolId,
+        $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
+      });
+      return teachers;
+    } catch (error) {
+      throw new NotFoundException('Teachers not found');
+    }
+  }
   async findOne(id: string): Promise<UserResponseDto> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('User not found');

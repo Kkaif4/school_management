@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Controller,
+  Query,
 } from '@nestjs/common';
 import { UserResponse, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -36,6 +37,12 @@ export class UserController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
+  }
+
+  @Get('school-teachers')
+  findSchoolTeachers(@Query('schoolId') schoolId: string) {
+    console.log('hello');
+    return this.userService.findSchoolTeachers(schoolId);
   }
 
   @Patch(':id')

@@ -13,12 +13,10 @@ export async function getSchools(): Promise<{
 }> {
   try {
     const res = await api.get('/school');
-
-    // Normalize the shape to fit component
     const schools: School[] = (res.data?.data || []).map((s: any) => ({
       id: s._id,
       name: s.name,
-      location: s.address, // mapping "address" to "location"
+      location: s.address,
       createdAt: s.createdAt,
     }));
 

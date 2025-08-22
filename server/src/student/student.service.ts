@@ -1,7 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student } from '../schema/student.schema';
+import { StudentResponseDto } from './dto/student-response.dto';
+
+export interface StudentArrayResponse {
+  success: boolean;
+  message: string;
+  data: Student[];
+}
 
 @Injectable()
 export class StudentService {
@@ -10,7 +21,7 @@ export class StudentService {
     private studentModel: Model<Student>,
   ) {}
 
-  async create(createStudentDto: any): Promise<Student> {
+  async create(createStudentDto: any): Promise<StudentResponseDto> {
     try {
       const school = await this.studentModel.findOne(createStudentDto.schoolId);
       if (!school) {
@@ -18,48 +29,96 @@ export class StudentService {
       }
 
       const student = await this.studentModel.create(createStudentDto);
-
-      return student;
+      const response = {
+        success: true,
+        message: 'Student created successfully',
+        data: student,
+      };
+      return response;
     } catch (error) {
       throw new NotFoundException('Student not found');
     }
   }
 
-  async findAll(): Promise<Student[]> {
-    return this.studentModel.find();
+  async findAll(): Promise<StudentArrayResponse> {
+    const students = await this.studentModel.find();
+    if (!students || students.length === 0) {
+      throw new NotFoundException('Students not found');
+    }
+    const response = {
+      success: true,
+      message: 'Students found successfully',
+      data: students,
+    };
+    return response;
   }
 
-  async findBySchool(schoolId: string): Promise<Student[]> {
+  async findBySchool(schoolId: string): Promise<StudentArrayResponse> {
     if (!Types.ObjectId.isValid(schoolId)) {
       throw new NotFoundException('School not found');
     }
-    return this.studentModel.find({ school: schoolId });
+
+    try {
+      const students = await this.studentModel.find({ school: schoolId });
+
+      if (!students || students.length === 0) {
+        throw new NotFoundException('Students not found');
+      }
+
+      const response = {
+        success: true,
+        message: 'Students found successfully',
+        data: students,
+      };
+      return response;
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  async findOne(id: string): Promise<Student> {
+  async findOne(id: string): Promise<StudentResponseDto> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Student not found');
     }
-    const student = await this.studentModel.findById(id);
-    if (!student) {
-      throw new NotFoundException('Student not found');
+    try {
+      const student = await this.studentModel.findById(id);
+      if (!student) {
+        throw new NotFoundException('Student not found');
+      }
+      const response = {
+        success: true,
+        message: 'Student found successfully',
+        data: student,
+      };
+
+      return response;
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
     }
-    return student;
   }
 
-  async update(id: string, updateStudentDto: any): Promise<Student> {
+  async update(id: string, updateStudentDto: any): Promise<StudentResponseDto> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Student not found');
     }
-    const student = await this.studentModel.findByIdAndUpdate(
-      id,
-      updateStudentDto,
-      { new: true },
-    );
-    if (!student) {
-      throw new NotFoundException('Student not found');
+    try {
+      const student = await this.studentModel.findByIdAndUpdate(
+        id,
+        updateStudentDto,
+        { new: true },
+      );
+      if (!student) {
+        throw new NotFoundException('Student not found');
+      }
+      const response = {
+        success: true,
+        message: 'Student updated successfully',
+        data: student,
+      };
+      return response;
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
     }
-    return student;
   }
 
   async remove(id: string): Promise<Student> {

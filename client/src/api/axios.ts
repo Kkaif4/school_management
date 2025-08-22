@@ -8,7 +8,6 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// Inject token dynamically for every request
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const userStr = localStorage.getItem('user');
@@ -20,22 +19,19 @@ api.interceptors.request.use((config) => {
         }
       } catch (error) {
         console.error('Error parsing user data:', error);
-        localStorage.removeItem('user'); // Clear invalid data
+        localStorage.removeItem('user');
       }
     }
   }
   return config;
 });
 
-// Handle unauthorized responses
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear user data on unauthorized response
       localStorage.removeItem('user');
 
-      // Redirect to login if we're in the browser
       if (typeof window !== 'undefined') {
         window.location.href = '/';
       }

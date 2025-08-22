@@ -62,7 +62,6 @@ export class UserService {
   }
 
   async findSchoolTeachers(schoolId: string) {
-    console.log('hello im in service');
     try {
       const teachers = await this.userModel.find({
         schoolId,

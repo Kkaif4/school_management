@@ -34,7 +34,6 @@ export default function School({
         setSchool(schoolData);
         setGlobalSchool(schoolData);
 
-        // Fetch dashboard data
         const dashboardData = await fetchDashboardData(id);
         setStudents(dashboardData.students);
         setTeachers(dashboardData.teachers);

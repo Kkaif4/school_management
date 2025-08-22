@@ -35,13 +35,11 @@ export class UserController {
 
   @Get('/teachers')
   async findSchoolTeachers(@Query('school') schoolId: string) {
-    console.log('teachers route hit');
     return await this.userService.findSchoolTeachers(schoolId);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    console.log('findOne route hit');
     return await this.userService.findOne(id);
   }
 

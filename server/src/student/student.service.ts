@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student } from '../schema/student.schema';
 import { StudentResponseDto } from './dto/student-response.dto';
+import { School } from 'src/schema/school.schema';
 
 export interface StudentArrayResponse {
   success: boolean;
@@ -19,15 +20,18 @@ export class StudentService {
   constructor(
     @InjectModel(Student.name)
     private studentModel: Model<Student>,
+    @InjectModel(School.name)
+    private schoolModel: Model<School>,
   ) {}
 
   async create(createStudentDto: any): Promise<StudentResponseDto> {
     try {
-      const school = await this.studentModel.findOne(createStudentDto.schoolId);
+      const school = await this.schoolModel.findById({
+        _id: createStudentDto.schoolId,
+      });
       if (!school) {
         throw new NotFoundException('School not found');
       }
-
       const student = await this.studentModel.create(createStudentDto);
       const response = {
         success: true,
@@ -36,7 +40,9 @@ export class StudentService {
       };
       return response;
     } catch (error) {
-      throw new NotFoundException('Student not found');
+      throw new BadRequestException(
+        'Something went wrong creating new student',
+      );
     }
   }
 

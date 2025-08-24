@@ -22,7 +22,7 @@ export async function getTeachers(schoolId: string): Promise<{
     return { teachers: res.data };
   } catch (err: any) {
     const errorMsg = err?.response?.data?.message || 'Failed to fetch teachers';
-    console.error('API getTeachers error:', errorMsg);
+    console.log('API getTeachers error:', errorMsg);
     return { teachers: [], error: errorMsg };
   }
 }

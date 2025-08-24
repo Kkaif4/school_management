@@ -1,11 +1,13 @@
 'use client';
 
-import { getStudents, Student } from '@/api/students';
-import { getTeachers, Teacher } from '@/api/teachers';
+import { Student } from '@/api/students';
+import { Teacher } from '@/api/teachers';
 import { getSchoolById, School as SchoolType } from '@/api/school';
 import { useSchoolStore } from '@/app/context/store';
 import { fetchDashboardData } from '@/services/schoolDashboard.service';
 import { useEffect, useState, use } from 'react';
+import Teachers from './components/Teachers';
+import Students from './components/Students';
 
 export default function School({
   params,
@@ -24,7 +26,6 @@ export default function School({
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch school details
         const { school: schoolData, error: schoolError } = await getSchoolById(
           id
         );
@@ -84,31 +85,18 @@ export default function School({
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Students
-            </h2>
-            {students.length > 0 ? (
-              <p className="text-3xl font-bold text-indigo-600">
-                {students.length}
-              </p>
-            ) : (
-              <p className="text-gray-500">No students enrolled</p>
-            )}
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Teachers
-            </h2>
-            {teachers.length > 0 ? (
-              <p className="text-3xl font-bold text-indigo-600">
-                {teachers.length}
-              </p>
-            ) : (
-              <p className="text-gray-500">No teachers assigned</p>
-            )}
-          </div>
+          <Students
+            schoolId={id}
+            students={students}
+            loading={loading}
+            error={error}
+          />
+          <Teachers
+            schoolId={id}
+            teachers={teachers}
+            loading={loading}
+            error={error}
+          />
         </div>
       </div>
     </div>

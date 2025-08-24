@@ -54,7 +54,7 @@ export class CreateUserDto {
     type: String,
     example: '64c9a6b9e0f1a2b3c4d5e6f7',
     description: 'school ID the user is associated with',
-    required: false,
+    required: true,
   })
   @IsMongoId()
   readonly schoolId: string;

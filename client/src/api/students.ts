@@ -1,11 +1,11 @@
 import { api } from './axios';
 
 export interface Student {
-  _id: string;
+  _id?: string; // Optional for creation
   firstName: string;
   middleName?: string;
   lastName: string;
-  dateOfBirth: Date;
+  dateOfBirth: string | Date;
   gender?: 'male' | 'female' | 'other';
   rollNumber?: string;
   fatherName?: string;
@@ -33,5 +33,17 @@ export async function getStudents(schoolId: string): Promise<{
   } catch (err: any) {
     const errorMsg = err?.response?.data?.message || 'Failed to fetch students';
     return { students: [], error: errorMsg };
+  }
+}
+
+export async function addStudent(
+  studentData: Student
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await api.post('/student', studentData);
+    return { success: true, message: res.data.message };
+  } catch (err: any) {
+    const errorMsg = err?.response?.data?.message || 'Failed to add student';
+    return { success: false, message: errorMsg };
   }
 }

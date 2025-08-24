@@ -66,7 +66,10 @@ export default function AddStudentForm({
     try {
       setLoading(true);
       console.log(result.data);
-      const response = await addStudent(result.data);
+      const response = await addStudent({
+        ...result.data,
+        gender: result.data.gender === '' ? undefined : result.data.gender,
+      });
 
       if (!response.success) {
         setErrors({ submit: response.message });

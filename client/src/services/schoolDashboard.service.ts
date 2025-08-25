@@ -14,13 +14,15 @@ export async function fetchDashboardData(id: string) {
       getStudents(id),
       getTeachers(id),
     ]);
+    console.log('school data', studentsRes)
+    
 
     return {
       students: studentsRes.students ?? [],
       teachers: teachersRes.teachers ?? [],
     };
   } catch (err) {
-    console.error('Error fetching dashboard data:', err);
+    console.log('Error fetching dashboard data:', err);
     return {
       students: [],
       teachers: [],

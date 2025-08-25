@@ -21,7 +21,7 @@ export default function AddStudentForm({
     middleName: '',
     lastName: '',
     dateOfBirth: '',
-    gender: 'male',
+    gender: '',
     rollNumber: '',
     fatherName: '',
     motherName: '',
@@ -47,11 +47,7 @@ export default function AddStudentForm({
     e.preventDefault();
     setErrors({});
 
-    const result = studentSchema.safeParse({
-      ...formData,
-      dateOfBirth: new Date(formData.dateOfBirth).toISOString(),
-      gender: formData.gender,
-    });
+    const result = studentSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {
@@ -66,10 +62,7 @@ export default function AddStudentForm({
     try {
       setLoading(true);
       console.log(result.data);
-      const response = await addStudent({
-        ...result.data,
-        gender: result.data.gender === '' ? undefined : result.data.gender,
-      });
+      const response = await addStudent(result.data);
 
       if (!response.success) {
         setErrors({ submit: response.message });
@@ -105,6 +98,9 @@ export default function AddStudentForm({
             className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
               ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.firstName && (
+            <span className="text-red-500 text-xs mt-1">{errors.firstName}</span>
+          )}
         </label>
 
         {/* Middle Name */}
@@ -117,8 +113,12 @@ export default function AddStudentForm({
             name="middleName"
             value={formData.middleName}
             onChange={handleChange}
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.middleName ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.middleName && (
+            <span className="text-red-500 text-xs mt-1">{errors.middleName}</span>
+          )}
         </label>
 
         {/* Last Name */}
@@ -132,8 +132,12 @@ export default function AddStudentForm({
             value={formData.lastName}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.lastName && (
+            <span className="text-red-500 text-xs mt-1">{errors.lastName}</span>
+          )}
         </label>
 
         {/* Date of Birth */}
@@ -147,8 +151,12 @@ export default function AddStudentForm({
             value={formData.dateOfBirth}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.dateOfBirth && (
+            <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>
+          )}
         </label>
 
         {/* Gender */}
@@ -161,11 +169,16 @@ export default function AddStudentForm({
             value={formData.gender}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.gender ? 'border-red-500' : 'border-gray-300'}`}>
+            <option value="">Select Gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
+          {errors.gender && (
+            <span className="text-red-500 text-xs mt-1">{errors.gender}</span>
+          )}
         </label>
 
         {/* Roll Number */}
@@ -179,8 +192,12 @@ export default function AddStudentForm({
             value={formData.rollNumber}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.rollNumber ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.rollNumber && (
+            <span className="text-red-500 text-xs mt-1">{errors.rollNumber}</span>
+          )}
         </label>
 
         {/* Father Name */}
@@ -194,8 +211,12 @@ export default function AddStudentForm({
             value={formData.fatherName}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.fatherName ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.fatherName && (
+            <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>
+          )}
         </label>
 
         {/* Mother Name */}
@@ -209,8 +230,12 @@ export default function AddStudentForm({
             value={formData.motherName}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.motherName ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.motherName && (
+            <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>
+          )}
         </label>
 
         {/* Grade */}
@@ -223,7 +248,8 @@ export default function AddStudentForm({
             value={formData.grade}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.grade ? 'border-red-500' : 'border-gray-300'}`}>
             <option value="">Select Grade</option>
             {[...Array(12)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -231,6 +257,9 @@ export default function AddStudentForm({
               </option>
             ))}
           </select>
+          {errors.grade && (
+            <span className="text-red-500 text-xs mt-1">{errors.grade}</span>
+          )}
         </label>
 
         {/* Division */}
@@ -243,7 +272,8 @@ export default function AddStudentForm({
             value={formData.division}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.division ? 'border-red-500' : 'border-gray-300'}`}>
             <option value="">Select Division</option>
             {['A', 'B', 'C', 'D', 'E'].map((div) => (
               <option key={div} value={div}>
@@ -251,6 +281,9 @@ export default function AddStudentForm({
               </option>
             ))}
           </select>
+          {errors.division && (
+            <span className="text-red-500 text-xs mt-1">{errors.division}</span>
+          )}
         </label>
 
         {/* Contact Number */}
@@ -264,8 +297,12 @@ export default function AddStudentForm({
             value={formData.contactNumber}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.contactNumber ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.contactNumber && (
+            <span className="text-red-500 text-xs mt-1">{errors.contactNumber}</span>
+          )}
         </label>
 
         {/* Address */}
@@ -278,15 +315,19 @@ export default function AddStudentForm({
             value={formData.address}
             onChange={handleChange}
             required
-            className="mt-1 bg-gray-50 rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
+              ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.address && (
+            <span className="text-red-500 text-xs mt-1">{errors.address}</span>
+          )}
         </label>
       </div>
 
       {/* Actions */}
       {errors.submit && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {errors.submit} here is this error
+          {errors.submit}
         </div>
       )}
 

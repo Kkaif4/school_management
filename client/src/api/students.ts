@@ -3,18 +3,18 @@ import { api } from './axios';
 export interface Student {
   _id?: string; // Optional for creation
   firstName: string;
-  middleName?: string;
+  middleName?: string; // Optional middle name
   lastName: string;
   dateOfBirth: string | Date;
-  gender?: 'male' | 'female' | 'other';
-  rollNumber?: string;
-  fatherName?: string;
-  motherName?: string;
+  gender: 'male' | 'female' | 'other' | '';
+  rollNumber: string;
+  fatherName: string;
+  motherName: string;
   schoolId: string;
-  division?: string;
+  division: string;
   grade: string;
-  contactNumber?: string;
-  address?: string;
+  contactNumber: string;
+  address: string;
 }
 
 interface StudentArrayResponse {
@@ -49,3 +49,4 @@ export async function addStudent(
     return { success: false, message: errorMsg };
   }
 }
+

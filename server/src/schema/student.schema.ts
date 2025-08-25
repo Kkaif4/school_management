@@ -62,4 +62,5 @@ export class Student extends Document {
   address: string;
 }
 
+export type StudentDocument = Student & Document;
 export const StudentSchema = SchemaFactory.createForClass(Student);

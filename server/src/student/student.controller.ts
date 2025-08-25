@@ -1,5 +1,4 @@
 import {
-  Controller,
   Get,
   Post,
   Body,
@@ -7,6 +6,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Controller,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { StudentArrayResponse, StudentService } from './student.service';
 import { AuthGuard } from '../auth/guard/auth.guard';
@@ -15,6 +17,7 @@ import { Roles } from '../decorator/roles.decorator';
 import { UserRole } from '../schema/user.schema';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { StudentResponseDto } from './dto/student-response.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('student')
 @UseGuards(AuthGuard, RolesGuard)
@@ -28,10 +31,19 @@ export class StudentController {
     return await this.studentService.create(createStudentDto);
   }
 
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
+  async createBulk(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('schoolId') schoolId: string,
+  ) {
+    return await this.studentService.processCSVFile(file, schoolId);
+  }
+
   @Get()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   findAll(): Promise<StudentArrayResponse> {
-    console.log('here im finding students');
     return this.studentService.findAll();
   }
 
@@ -40,7 +52,6 @@ export class StudentController {
   findBySchool(
     @Param('schoolId') schoolId: string,
   ): Promise<StudentArrayResponse> {
-    console.log('school id: ', schoolId);
     return this.studentService.findBySchool(schoolId);
   }
 
@@ -57,6 +68,12 @@ export class StudentController {
     @Body() updateStudentDto: any,
   ): Promise<StudentResponseDto> {
     return this.studentService.update(id, updateStudentDto);
+  }
+
+  @Delete('all/:id')
+  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN)
+  async removeAll(@Param('id') schoolId: string) {
+    return await this.studentService.removeAll(schoolId);
   }
 
   @Delete(':id')

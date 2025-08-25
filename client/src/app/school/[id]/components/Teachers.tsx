@@ -17,7 +17,7 @@ export default function Teachers({
   error,
   loading,
 }: TeachersProps) {
-  const [showForm, setShowForm] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   if (loading) {
     return (
@@ -36,23 +36,21 @@ export default function Teachers({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Teachers</h2>
+    <div className="bg-white p-6 rounded-lg shadow-sm border text-black border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Students</h2>
         <button
-          onClick={() => setShowForm((prev) => !prev)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-          {showForm ? 'Cancel' : '+ Add Teacher'}
+          onClick={() => setIsFormOpen(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">
+          + Add Student
         </button>
       </div>
 
-      {showForm && <AddTeacherForm schoolId={schoolId} />}
-
       {teachers.length > 0 ? (
-        <div className="space-y-3 mt-4">
+        <div className="space-y-3">
           {/* Count */}
           <p className="text-3xl font-bold text-indigo-600">
-            {teachers.length} Teacher{teachers.length > 1 ? 's' : ''}
+            {teachers.length} Student{teachers.length > 1 ? 's' : ''}
           </p>
 
           {/* List */}
@@ -64,13 +62,30 @@ export default function Teachers({
                 <span className="font-medium text-gray-800">
                   {teacher.name}
                 </span>
-                <span className="text-gray-500">{teacher.email}</span>
               </li>
             ))}
           </ul>
         </div>
       ) : (
-        <p className="text-gray-500 mt-4">No teachers found</p>
+        <p className="text-gray-500">No teachers enrolled</p>
+      )}
+
+      {isFormOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-7xl relative">
+            <button
+              onClick={() => setIsFormOpen(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+              ✕
+            </button>
+
+            <AddTeacherForm
+              schoolId={schoolId}
+              onSuccess={() => setIsFormOpen(false)}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

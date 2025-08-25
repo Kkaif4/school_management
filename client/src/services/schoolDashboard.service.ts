@@ -14,8 +14,6 @@ export async function fetchDashboardData(id: string) {
       getStudents(id),
       getTeachers(id),
     ]);
-    console.log('school data', studentsRes)
-    
 
     return {
       students: studentsRes.students ?? [],

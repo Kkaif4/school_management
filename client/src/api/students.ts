@@ -28,9 +28,11 @@ export async function getStudents(schoolId: string): Promise<{
   error?: string;
 }> {
   try {
-    const res = await api.get<StudentArrayResponse>(`/student/${schoolId}`);
+    const res = await api.get(`/student/${schoolId}`);
+    console.log('student data: ', res.data);
     return { students: res.data.data || [] };
   } catch (err: any) {
+    console.log('got error: ', err);
     const errorMsg = err?.response?.data?.message || 'Failed to fetch students';
     return { students: [], error: errorMsg };
   }

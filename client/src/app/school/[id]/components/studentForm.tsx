@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { User, Calendar, Phone, Home, Hash, Book, Users } from 'lucide-react';
-import { StudentFormData, studentSchema } from '../student.schema';
+import { StudentFormData, studentSchema } from '../schema';
 import { addStudent } from '@/api/students';
 
 interface AddStudentFormProps {

@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-type Gender = 'male' | 'female' | 'other' | null;
-
 export const studentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
@@ -23,3 +21,13 @@ export const studentSchema = z.object({
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;
+
+export const teacherSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  role: z.enum(['teacher', 'sub_admin']),
+  schoolId: z.string().min(1, 'School ID is required'),
+});
+
+export type TeacherFormData = z.infer<typeof teacherSchema>;

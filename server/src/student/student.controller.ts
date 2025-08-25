@@ -31,14 +31,16 @@ export class StudentController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   findAll(): Promise<StudentArrayResponse> {
+    console.log('here im finding students');
     return this.studentService.findAll();
   }
 
-  @Get('school/:schoolId')
+  @Get(':schoolId')
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   findBySchool(
     @Param('schoolId') schoolId: string,
   ): Promise<StudentArrayResponse> {
+    console.log('school id: ', schoolId);
     return this.studentService.findBySchool(schoolId);
   }
 

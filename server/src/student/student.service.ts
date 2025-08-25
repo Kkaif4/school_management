@@ -47,26 +47,25 @@ export class StudentService {
   }
 
   async findAll(): Promise<StudentArrayResponse> {
-    const students = await this.studentModel.find();
-    if (!students || students.length === 0) {
-      throw new NotFoundException('Students not found');
+    try {
+      const students = await this.studentModel.find();
+      if (!students || students.length === 0) {
+        throw new NotFoundException('Students not found');
+      }
+      const response = {
+        success: true,
+        message: 'Students found successfully',
+        data: students,
+      };
+      return response;
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Something went wrong');
     }
-    const response = {
-      success: true,
-      message: 'Students found successfully',
-      data: students,
-    };
-    return response;
   }
 
   async findBySchool(schoolId: string): Promise<StudentArrayResponse> {
-    if (!Types.ObjectId.isValid(schoolId)) {
-      throw new NotFoundException('School not found');
-    }
-
     try {
-      const students = await this.studentModel.find({ school: schoolId });
-
+      const students = await this.studentModel.find({ schoolId: schoolId });
       if (!students || students.length === 0) {
         throw new NotFoundException('Students not found');
       }
@@ -78,7 +77,7 @@ export class StudentService {
       };
       return response;
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException(error.message || 'Something went wrong');
     }
   }
 
@@ -99,7 +98,7 @@ export class StudentService {
 
       return response;
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException(error.message || 'Something went wrong');
     }
   }
 
@@ -123,7 +122,7 @@ export class StudentService {
       };
       return response;
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException(error.message || 'Something went wrong');
     }
   }
 

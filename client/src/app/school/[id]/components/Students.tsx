@@ -1,8 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Student } from '@/api/students';
-import AddStudentForm from './studentForm';
+import { useState, useMemo } from "react";
+import { Student } from "@/api/students";
+import StudentsHeader from "./StudentsHeader";
+import StudentsFilters from "./StudentsFilters";
+import StudentsList from "./StudentsList";
+import EmptyState from "./EmptyState";
+import AddStudentModal from "./AddStudentModal";
+import StudentDetails from "./StudentDetails";
 
 interface StudentsProps {
   schoolId: string;
@@ -18,10 +23,48 @@ export default function Students({
   loading,
 }: StudentsProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGrade, setSelectedGrade] = useState<string>("all");
+  const [selectedDivision, setSelectedDivision] = useState<string>("all");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Filter students based on search and filters
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const matchesSearch =
+        student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesGrade =
+        selectedGrade === "all" || student.grade === selectedGrade;
+      const matchesDivision =
+        selectedDivision === "all" || student.division === selectedDivision;
+
+      return matchesSearch && matchesGrade && matchesDivision;
+    });
+  }, [students, searchTerm, selectedGrade, selectedDivision]);
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedGrade("all");
+    setSelectedDivision("all");
+  };
+
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudent(student);
+    setIsDetailsOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedStudent(null);
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -29,66 +72,60 @@ export default function Students({
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500">{error}</div>
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-red-500 bg-red-50 p-4 rounded-lg border border-red-200">
+          <p className="font-medium">Error loading students</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border text-black border-gray-200">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Students</h2>
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">
-          + Add Student
-        </button>
-      </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <StudentsHeader onAddStudent={() => setIsFormOpen(true)} onUploadCSV={()=>{}}/>
+      
+      <StudentsFilters
+        searchTerm={searchTerm}
+        selectedGrade={selectedGrade}
+        selectedDivision={selectedDivision}
+        onSearchChange={setSearchTerm}
+        onGradeChange={setSelectedGrade}
+        onDivisionChange={setSelectedDivision}
+        onClearFilters={handleClearFilters}
+      />
 
-      {students.length > 0 ? (
-        <div className="space-y-3">
-          {/* Count */}
-          <p className="text-3xl font-bold text-indigo-600">
-            {students.length} Student{students.length > 1 ? 's' : ''}
-          </p>
-
-          {/* List */}
-          <ul className="divide-y divide-gray-200 border rounded-lg">
-            {students.map((student) => (
-              <li
-                key={student._id}
-                className="p-3 flex justify-between items-center text-sm">
-                <span className="font-medium text-gray-800">
-                  {student.firstName} {student.lastName}
-                </span>
-                <span className="text-gray-500">
-                  Roll: {student.rollNumber}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {filteredStudents.length > 0 ? (
+        <StudentsList 
+          students={students} 
+          filteredStudents={filteredStudents} 
+          onStudentClick={handleStudentClick}
+        />
       ) : (
-        <p className="text-gray-500">No students enrolled</p>
+        <EmptyState 
+          hasStudents={students.length > 0} 
+          onAddStudent={() => setIsFormOpen(true)} 
+        />
       )}
 
-      {isFormOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-7xl relative">
-            <button
-              onClick={() => setIsFormOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
-              ✕
-            </button>
+      <AddStudentModal
+        isOpen={isFormOpen}
+        schoolId={schoolId}
+        onClose={() => setIsFormOpen(false)}
+        onSuccess={() => {
+          setIsFormOpen(false);
+          // You might want to refresh the student list here
+        }}
+        onCancel={() => setIsFormOpen(false)}
+      />
 
-            <AddStudentForm
-              schoolId={schoolId}
-              onSuccess={() => setIsFormOpen(false)}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </div>
-        </div>
+      {/* Student Details Modal */}
+      {selectedStudent && (
+        <StudentDetails
+          student={selectedStudent}
+          isOpen={isDetailsOpen}
+          onClose={handleCloseDetails}
+        />
       )}
     </div>
   );

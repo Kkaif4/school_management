@@ -1,17 +1,18 @@
 // app/school/[id]/page.tsx
-'use client';
+"use client";
 
-import { Student } from '@/api/students';
-import { Teacher } from '@/api/teachers';
-import { getSchoolById, School as SchoolType } from '@/api/school';
-import { useSchoolStore } from '@/app/context/store';
-import { fetchDashboardData } from '@/services/schoolDashboard.service';
-import { useEffect, useState, use } from 'react';
-import { Menu } from 'lucide-react';
-import Teachers from './components/Teachers';
-import Students from './components/Students';
-import Sidebar from '@/components/Sidebar';
-import HomeContent from '@/components/HomeContent';
+import { Student } from "@/api/students";
+import { Teacher } from "@/api/teachers";
+import { getSchoolById, School as SchoolType } from "@/api/school";
+import { useSchoolStore } from "@/app/context/store";
+import { fetchDashboardData } from "@/services/schoolDashboard.service";
+import { useEffect, useState, use } from "react";
+import { Menu } from "lucide-react";
+import Teachers from "./components/Teachers";
+import Students from "./components/Students";
+import Sidebar from "@/components/Sidebar";
+import HomeContent from "@/components/HomeContent";
+import { useRouter } from "next/navigation";
 
 export default function School({
   params,
@@ -19,13 +20,13 @@ export default function School({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-
+  const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [school, setSchool] = useState<SchoolType | null>(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setSchool: setGlobalSchool } = useSchoolStore();
 
@@ -36,7 +37,7 @@ export default function School({
           id
         );
         if (schoolError) throw new Error(schoolError);
-        if (!schoolData) throw new Error('School not found');
+        if (!schoolData) throw new Error("School not found");
 
         setSchool(schoolData);
         setGlobalSchool(schoolData);
@@ -45,7 +46,7 @@ export default function School({
         setStudents(dashboardData.students);
         setTeachers(dashboardData.teachers);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        setError(err instanceof Error ? err.message : "Failed to fetch data");
       } finally {
         setLoading(false);
       }
@@ -55,13 +56,14 @@ export default function School({
   }, [id, setGlobalSchool]);
 
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log('Logout clicked');
+    localStorage.removeItem("user");
+    router.push("/");
+    console.log("Logout clicked");
   };
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home':
+      case "home":
         return school ? (
           <HomeContent
             school={school}
@@ -69,7 +71,7 @@ export default function School({
             teachers={teachers}
           />
         ) : null;
-      case 'students':
+      case "students":
         return (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <Students
@@ -80,7 +82,7 @@ export default function School({
             />
           </div>
         );
-      case 'teachers':
+      case "teachers":
         return (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <Teachers
@@ -170,7 +172,8 @@ export default function School({
           <div className="flex items-center justify-between h-16 px-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-500 hover:text-gray-700">
+              className="text-gray-500 hover:text-gray-700"
+            >
               <Menu className="h-6 w-6" />
             </button>
             <h1 className="text-lg font-semibold text-gray-900">

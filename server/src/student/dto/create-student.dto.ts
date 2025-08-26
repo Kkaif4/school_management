@@ -9,6 +9,7 @@ import {
   Min,
   Max,
   IsMongoId,
+  Matches,
 } from 'class-validator';
 
 import { Gender, Divisions } from 'src/schema/student.schema';
@@ -58,10 +59,13 @@ export class CreateStudentDto {
   @IsNotEmpty()
   motherName: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  @Length(12, 12)
-  adhaar: number;
+  @Length(12, 12, { message: 'Aadhaar must be exactly 12 digits' })
+  @Matches(/^[2-9][0-9]{11}$/, {
+    message: 'Aadhaar must be 12 digits and cannot start with 0 or 1',
+  })
+  adhaar: string;
 
   @IsString()
   @IsNotEmpty()

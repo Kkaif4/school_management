@@ -33,9 +33,7 @@ export default function StudentDetails({
       day: 'numeric',
     });
   };
-  const handleDelete = () => {
-    
-  };
+  const handleDelete = () => {};
   const handlePrint = () => {
     const printContent = document.getElementById('student-details-print');
     if (printContent) {

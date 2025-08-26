@@ -4,17 +4,31 @@ import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
+  Length,
+  Min,
+  Max,
+  IsMongoId,
 } from 'class-validator';
 
 import { Gender, Divisions } from 'src/schema/student.schema';
 
 export class CreateStudentDto {
+  @IsNumber()
+  @IsNotEmpty()
+  studentId: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  registerNumber: number;
+
   @IsString()
   @IsNotEmpty()
   firstName: string;
 
   @IsString()
-  middleName?: string; // optional
+  @IsOptional()
+  middleName?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -24,12 +38,17 @@ export class CreateStudentDto {
   @IsNotEmpty()
   dateOfBirth: string;
 
-  @IsEnum(Gender)
-  gender: Gender;
-
   @IsString()
   @IsNotEmpty()
-  rollNumber: string;
+  birthPlace: string;
+
+  @IsEnum(Gender)
+  @IsNotEmpty()
+  gender: Gender;
+
+  @IsNumber()
+  @IsNotEmpty()
+  rollNumber: number;
 
   @IsString()
   @IsNotEmpty()
@@ -40,9 +59,30 @@ export class CreateStudentDto {
   motherName: string;
 
   @IsNumber()
+  @IsNotEmpty()
+  @Length(12, 12)
+  adhaar: number;
+
+  @IsString()
+  @IsNotEmpty()
+  cast: string;
+
+  @IsString()
+  @IsNotEmpty()
+  religion: string;
+
+  @IsString()
+  @IsNotEmpty()
+  nationality: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(12)
+  @IsNotEmpty()
   grade: number;
 
   @IsEnum(Divisions)
+  @IsNotEmpty()
   division: Divisions;
 
   @IsString()
@@ -50,9 +90,18 @@ export class CreateStudentDto {
   contactNumber: string;
 
   @IsString()
-  address?: string;
+  @IsNotEmpty()
+  address: string;
 
   @IsString()
+  @IsOptional()
+  previousSchoolName?: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  admissionDate: string;
+
+  @IsMongoId()
   @IsNotEmpty()
   schoolId: string;
 }

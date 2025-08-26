@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Calendar, Phone, Home, Hash, Book, Users } from 'lucide-react';
-import { StudentFormData, studentSchema } from '../schema';
+import { User, Phone, Users, BookOpen } from 'lucide-react';
+import { StudentFormData, studentSchema, Genders, Divisions } from '../schema';
 import { addStudent } from '@/api/students';
+
+type Gender = (typeof Genders)[number];
+type Division = (typeof Divisions)[number];
 
 interface AddStudentFormProps {
   schoolId: string;
@@ -17,30 +20,40 @@ export default function AddStudentForm({
   onCancel,
 }: AddStudentFormProps) {
   const [formData, setFormData] = useState<StudentFormData>({
+    studentId: '',
+    registerNumber: '',
     firstName: '',
     middleName: '',
     lastName: '',
     dateOfBirth: '',
-    gender: '',
+    birthPlace: '',
+    gender: 'male',
     rollNumber: '',
     fatherName: '',
     motherName: '',
+    adhaar: '',
+    cast: '',
+    religion: '',
+    nationality: '',
     grade: '',
     division: '',
     contactNumber: '',
     address: '',
+    previousSchoolName: '',
+    admissionDate: '',
     schoolId: schoolId,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const [loading, setLoading] = useState(false);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' }); // clear error on change
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,9 +74,22 @@ export default function AddStudentForm({
 
     try {
       setLoading(true);
-      console.log(result.data);
-      const response = await addStudent(result.data);
-
+      const parsedData = {
+        ...result.data,
+        studentId: Number(result.data.studentId),
+        registerNumber: Number(result.data.registerNumber),
+        rollNumber: Number(result.data.rollNumber),
+        adhaar: Number(result.data.adhaar),
+        grade: Number(result.data.grade),
+        gender:
+          result.data.gender === '' ? 'male' : (result.data.gender as Gender),
+        division:
+          result.data.division === ''
+            ? 'A'
+            : (result.data.division as Division),
+      };
+      console.log('calling api');
+      const response = await addStudent(parsedData);
       if (!response.success) {
         setErrors({ submit: response.message });
         return;
@@ -77,274 +103,336 @@ export default function AddStudentForm({
     }
   };
 
+  const inputClass =
+    'w-full rounded-md px-3 py-2 text-black placeholder-gray-400 bg-white border border-gray-300 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-sm';
+
+  const sectionClass = 'space-y-4';
+
+  // helper to show errors under inputs
+  const renderError = (field: string) =>
+    errors[field] ? (
+      <p className="text-red-500 text-xs mt-1">{errors[field]}</p>
+    ) : null;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6 text-black animate-fadeIn">
-      <h3 className="text-2xl font-semibold mb-4 text-gray-800">Add Student</h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* First Name */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <User size={16} /> First Name
-          </span>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.firstName && (
-            <span className="text-red-500 text-xs mt-1">{errors.firstName}</span>
-          )}
-        </label>
-
-        {/* Middle Name */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <User size={16} /> Middle Name
-          </span>
-          <input
-            type="text"
-            name="middleName"
-            value={formData.middleName}
-            onChange={handleChange}
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.middleName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.middleName && (
-            <span className="text-red-500 text-xs mt-1">{errors.middleName}</span>
-          )}
-        </label>
-
-        {/* Last Name */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <User size={16} /> Last Name
-          </span>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.lastName && (
-            <span className="text-red-500 text-xs mt-1">{errors.lastName}</span>
-          )}
-        </label>
-
-        {/* Date of Birth */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Calendar size={16} /> Date of Birth
-          </span>
-          <input
-            type="date"
-            name="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.dateOfBirth && (
-            <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>
-          )}
-        </label>
-
-        {/* Gender */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Users size={16} /> Gender
-          </span>
-          <select
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.gender ? 'border-red-500' : 'border-gray-300'}`}>
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-          {errors.gender && (
-            <span className="text-red-500 text-xs mt-1">{errors.gender}</span>
-          )}
-        </label>
-
-        {/* Roll Number */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Hash size={16} /> Roll Number
-          </span>
-          <input
-            type="text"
-            name="rollNumber"
-            value={formData.rollNumber}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.rollNumber ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.rollNumber && (
-            <span className="text-red-500 text-xs mt-1">{errors.rollNumber}</span>
-          )}
-        </label>
-
-        {/* Father Name */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <User size={16} /> Father Name
-          </span>
-          <input
-            type="text"
-            name="fatherName"
-            value={formData.fatherName}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.fatherName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.fatherName && (
-            <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>
-          )}
-        </label>
-
-        {/* Mother Name */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <User size={16} /> Mother Name
-          </span>
-          <input
-            type="text"
-            name="motherName"
-            value={formData.motherName}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.motherName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.motherName && (
-            <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>
-          )}
-        </label>
-
-        {/* Grade */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Book size={16} /> Grade
-          </span>
-          <select
-            name="grade"
-            value={formData.grade}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.grade ? 'border-red-500' : 'border-gray-300'}`}>
-            <option value="">Select Grade</option>
-            {[...Array(12)].map((_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Grade {i + 1}
-              </option>
-            ))}
-          </select>
-          {errors.grade && (
-            <span className="text-red-500 text-xs mt-1">{errors.grade}</span>
-          )}
-        </label>
-
-        {/* Division */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Book size={16} /> Division
-          </span>
-          <select
-            name="division"
-            value={formData.division}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.division ? 'border-red-500' : 'border-gray-300'}`}>
-            <option value="">Select Division</option>
-            {['A', 'B', 'C', 'D', 'E'].map((div) => (
-              <option key={div} value={div}>
-                {div}
-              </option>
-            ))}
-          </select>
-          {errors.division && (
-            <span className="text-red-500 text-xs mt-1">{errors.division}</span>
-          )}
-        </label>
-
-        {/* Contact Number */}
-        <label className="flex flex-col">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Phone size={16} /> Contact Number
-          </span>
-          <input
-            type="tel"
-            name="contactNumber"
-            value={formData.contactNumber}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.contactNumber ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.contactNumber && (
-            <span className="text-red-500 text-xs mt-1">{errors.contactNumber}</span>
-          )}
-        </label>
-
-        {/* Address */}
-        <label className="flex flex-col md:col-span-3">
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
-            <Home size={16} /> Address
-          </span>
-          <textarea
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            className={`mt-1 bg-gray-50 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition
-              ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.address && (
-            <span className="text-red-500 text-xs mt-1">{errors.address}</span>
-          )}
-        </label>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Student Info */}
+      <div className={sectionClass}>
+        <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+          <User className="h-5 w-5 text-indigo-500" />
+          Student Information
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Student ID
+            </label>
+            <input
+              name="studentId"
+              className={inputClass}
+              value={formData.studentId}
+              onChange={handleChange}
+            />
+            {renderError('studentId')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Register Number
+            </label>
+            <input
+              name="registerNumber"
+              className={inputClass}
+              value={formData.registerNumber}
+              onChange={handleChange}
+            />
+            {renderError('registerNumber')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              First Name
+            </label>
+            <input
+              name="firstName"
+              className={inputClass}
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            {renderError('firstName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Middle Name
+            </label>
+            <input
+              name="middleName"
+              className={inputClass}
+              value={formData.middleName}
+              onChange={handleChange}
+            />
+            {renderError('middleName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Last Name
+            </label>
+            <input
+              name="lastName"
+              className={inputClass}
+              value={formData.lastName}
+              onChange={handleChange}
+            />
+            {renderError('lastName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              className={inputClass}
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+            />
+            {renderError('dateOfBirth')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Birth Place
+            </label>
+            <input
+              name="birthPlace"
+              className={inputClass}
+              value={formData.birthPlace}
+              onChange={handleChange}
+            />
+            {renderError('birthPlace')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Gender</label>
+            <select
+              name="gender"
+              className={inputClass}
+              value={formData.gender}
+              onChange={handleChange}>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            {renderError('gender')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Roll Number
+            </label>
+            <input
+              name="rollNumber"
+              className={inputClass}
+              value={formData.rollNumber}
+              onChange={handleChange}
+            />
+            {renderError('rollNumber')}
+          </div>
+        </div>
       </div>
 
-      {/* Actions */}
-      {errors.submit && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {errors.submit}
+      {/* Family Info */}
+      <div className={sectionClass}>
+        <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+          <Users className="h-5 w-5 text-indigo-500" />
+          Family Information
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Father's Name
+            </label>
+            <input
+              name="fatherName"
+              className={inputClass}
+              value={formData.fatherName}
+              onChange={handleChange}
+            />
+            {renderError('fatherName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Mother's Name
+            </label>
+            <input
+              name="motherName"
+              className={inputClass}
+              value={formData.motherName}
+              onChange={handleChange}
+            />
+            {renderError('motherName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Aadhaar Number
+            </label>
+            <input
+              name="adhaar"
+              className={inputClass}
+              value={formData.adhaar}
+              onChange={handleChange}
+            />
+            {renderError('adhaar')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Caste</label>
+            <input
+              name="cast"
+              className={inputClass}
+              value={formData.cast}
+              onChange={handleChange}
+            />
+            {renderError('cast')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Religion</label>
+            <input
+              name="religion"
+              className={inputClass}
+              value={formData.religion}
+              onChange={handleChange}
+            />
+            {renderError('religion')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Nationality
+            </label>
+            <input
+              name="nationality"
+              className={inputClass}
+              value={formData.nationality}
+              onChange={handleChange}
+            />
+            {renderError('nationality')}
+          </div>
         </div>
+      </div>
+
+      {/* Academic Info */}
+      <div className={sectionClass}>
+        <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+          <BookOpen className="h-5 w-5 text-indigo-500" />
+          Academic Information
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Grade</label>
+            <select
+              name="grade"
+              className={inputClass}
+              value={formData.grade}
+              onChange={handleChange}>
+              <option value="">Select Grade</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((_, i) => (
+                <option key={i} value={i + 1}>
+                  Grade {i + 1}
+                </option>
+              ))}
+            </select>
+            {renderError('grade')}
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Division</label>
+            <select
+              name="division"
+              className={inputClass}
+              value={formData.division}
+              onChange={handleChange}>
+              <option value="">Select Division</option>
+              {Divisions.map((division, i) => (
+                <option key={i} value={division}>
+                  {division}
+                </option>
+              ))}
+            </select>
+            {renderError('division')}
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Previous School Name
+            </label>
+            <input
+              name="previousSchoolName"
+              className={inputClass}
+              value={formData.previousSchoolName}
+              onChange={handleChange}
+            />
+            {renderError('previousSchoolName')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Admission Date
+            </label>
+            <input
+              type="date"
+              name="admissionDate"
+              className={inputClass}
+              value={formData.admissionDate}
+              onChange={handleChange}
+            />
+            {renderError('admissionDate')}
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Info */}
+      <div className={sectionClass}>
+        <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+          <Phone className="h-5 w-5 text-indigo-500" />
+          Contact Information
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Contact Number
+            </label>
+            <input
+              name="contactNumber"
+              className={inputClass}
+              value={formData.contactNumber}
+              onChange={handleChange}
+            />
+            {renderError('contactNumber')}
+          </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Address</label>
+            <input
+              name="address"
+              className={inputClass}
+              value={formData.address}
+              onChange={handleChange}
+            />
+            {renderError('address')}
+          </div>
+        </div>
+      </div>
+
+      {/* Submit-level error */}
+      {errors.submit && (
+        <p className="text-red-600 text-sm font-medium">{errors.submit}</p>
       )}
 
-      <div className="flex justify-end gap-3 mt-6">
+      {/* Actions */}
+      <div className="flex justify-end gap-4">
         <button
           type="button"
           onClick={onCancel}
-          disabled={loading}
-          className="px-5 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition 
-            disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+          className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 transition">
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition
-            disabled:bg-indigo-400 disabled:cursor-not-allowed flex items-center gap-2">
+          className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
           {loading ? 'Saving...' : 'Save'}
         </button>
       </div>

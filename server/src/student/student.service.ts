@@ -11,18 +11,19 @@ import { StudentResponseDto } from './dto/student-response.dto';
 import { School } from 'src/schema/school.schema';
 import { Readable } from 'stream';
 import csv from 'csv-parser';
+import { CreateStudentDto } from './dto/create-student.dto';
 export interface PaginationMeta {
-  total: number; // total number of students
-  page: number; // current page
-  limit: number; // records per page
-  totalPages: number; // calculated total pages
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface StudentArrayResponse {
   success: boolean;
   message: string;
   data: Student[];
-  pagination: PaginationMeta; // new field for pagination
+  pagination: PaginationMeta;
 }
 @Injectable()
 export class StudentService {
@@ -33,8 +34,11 @@ export class StudentService {
     private schoolModel: Model<School>,
   ) {}
 
-  async create(createStudentDto: any): Promise<StudentResponseDto> {
+  async create(
+    createStudentDto: CreateStudentDto,
+  ): Promise<StudentResponseDto> {
     try {
+      console.log('creating new student');
       const school = await this.schoolModel.findById({
         _id: createStudentDto.schoolId,
       });
@@ -47,6 +51,7 @@ export class StudentService {
         message: 'Student created successfully',
         data: student,
       };
+      console.log('new student created');
       return response;
     } catch (error) {
       throw new BadRequestException(

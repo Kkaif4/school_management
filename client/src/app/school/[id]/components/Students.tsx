@@ -35,10 +35,12 @@ export default function Students({
       const matchesSearch =
         student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        `${student.rollNumber}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesGrade =
-        selectedGrade === 'all' || student.grade === selectedGrade;
+        selectedGrade === 'all' || student.grade === Number(selectedGrade);
       const matchesDivision =
         selectedDivision === 'all' || student.division === selectedDivision;
 

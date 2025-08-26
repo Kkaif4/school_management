@@ -1,22 +1,77 @@
 import { z } from 'zod';
 
+export const Genders = ['male', 'female', 'other', ''] as const;
+export const Divisions = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  '',
+] as const;
+
 export const studentSchema = z.object({
+  studentId: z
+    .string({ error: 'Student ID must be a number' })
+    .min(1, 'Student ID is required'),
+  registerNumber: z
+    .string({ error: 'Register Number must be a number' })
+    .min(1, 'Register Number is required'),
+
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
-  gender: z.enum(['male', 'female', 'other', ''], {
-    error: 'Gender is required',
-  }),
-  rollNumber: z.string().min(1, 'Roll number is required'),
+
+  dateOfBirth: z
+    .string()
+    .min(1, 'Date of birth is required')
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: 'Invalid date format',
+    }),
+
+  birthPlace: z.string().min(1, 'Birth place is required'),
+
+  gender: z.enum(Genders, { error: 'Gender is required' }),
+
+  rollNumber: z
+    .string({ error: 'Roll Number must be a number' })
+    .min(1, 'Roll number is required'),
+
   fatherName: z.string().min(1, 'Father name is required'),
   motherName: z.string().min(1, 'Mother name is required'),
-  grade: z.string().min(1, 'Grade is required'),
-  division: z.string().min(1, 'Division is required'),
+
+  adhaar: z.string().regex(/^\d{12}$/, 'Aadhaar must be 12 digits'),
+
+  cast: z.string().min(1, 'Cast is required'),
+  religion: z.string().min(1, 'Religion is required'),
+  nationality: z.string().min(1, 'Nationality is required'),
+
+  grade: z
+    .string({ error: 'Grade must be a number' })
+    .min(1, 'Grade must be between 1 and 12')
+    .max(12, 'Grade must be between 1 and 12'),
+
+  division: z.enum(Divisions, { error: 'Division is required' }),
+
   contactNumber: z
     .string()
     .regex(/^[0-9]{10}$/, 'Contact number must be 10 digits'),
+
   address: z.string().min(5, 'Address must be at least 5 characters'),
+
+  previousSchoolName: z.string().optional(),
+
+  admissionDate: z
+    .string()
+    .min(1, 'Admission date is required')
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: 'Invalid date format',
+    }),
+
   schoolId: z.string().min(1, 'School ID is required'),
 });
 

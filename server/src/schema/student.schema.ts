@@ -22,6 +22,12 @@ export enum Divisions {
 
 @Schema({ timestamps: true })
 export class Student extends Document {
+  @Prop({ required: true, unique: true })
+  studentId: number;
+
+  @Prop({ required: true, unique: true })
+  registerNumber: number;
+
   @Prop({ required: true })
   firstName: string;
 
@@ -34,11 +40,14 @@ export class Student extends Document {
   @Prop({ required: true })
   dateOfBirth: Date;
 
+  @Prop({ required: true })
+  birthPlace: string;
+
   @Prop({ required: true, enum: Gender })
   gender: Gender;
 
   @Prop({ required: true })
-  rollNumber: string;
+  rollNumber: number;
 
   @Prop({ required: true })
   fatherName: string;
@@ -46,8 +55,17 @@ export class Student extends Document {
   @Prop({ required: true })
   motherName: string;
 
-  @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
-  schoolId: Types.ObjectId;
+  @Prop({ required: true, min: 12, max: 12 })
+  adhaar: number;
+
+  @Prop({ required: true })
+  cast: string;
+
+  @Prop({ required: true })
+  religion: string;
+
+  @Prop({ required: true })
+  nationality: string;
 
   @Prop({ required: true, min: 1, max: 12 })
   grade: number;
@@ -60,6 +78,15 @@ export class Student extends Document {
 
   @Prop({ required: true })
   address: string;
+
+  @Prop({ required: false })
+  previousSchoolName: string;
+
+  @Prop({ required: true })
+  admissionDate: Date;
+
+  @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
+  schoolId: Types.ObjectId;
 }
 
 export type StudentDocument = Student & Document;

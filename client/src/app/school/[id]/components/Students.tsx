@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { Student } from "@/api/students";
-import StudentsHeader from "./StudentsHeader";
-import StudentsFilters from "./StudentsFilters";
-import StudentsList from "./StudentsList";
-import EmptyState from "./EmptyState";
-import AddStudentModal from "./AddStudentModal";
-import StudentDetails from "./StudentDetails";
+import { useState, useMemo } from 'react';
+import { Student } from '@/api/students';
+import StudentsHeader from './StudentsHeader';
+import StudentsFilters from './StudentsFilters';
+import StudentsList from './StudentsList';
+import EmptyState from './EmptyState';
+import AddStudentModal from './AddStudentModal';
+import StudentDetails from './StudentDetails';
 
 interface StudentsProps {
   schoolId: string;
@@ -23,9 +23,9 @@ export default function Students({
   loading,
 }: StudentsProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState<string>("all");
-  const [selectedDivision, setSelectedDivision] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedDivision, setSelectedDivision] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -38,18 +38,18 @@ export default function Students({
         student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesGrade =
-        selectedGrade === "all" || student.grade === selectedGrade;
+        selectedGrade === 'all' || student.grade === selectedGrade;
       const matchesDivision =
-        selectedDivision === "all" || student.division === selectedDivision;
+        selectedDivision === 'all' || student.division === selectedDivision;
 
       return matchesSearch && matchesGrade && matchesDivision;
     });
   }, [students, searchTerm, selectedGrade, selectedDivision]);
 
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setSelectedGrade("all");
-    setSelectedDivision("all");
+    setSearchTerm('');
+    setSelectedGrade('all');
+    setSelectedDivision('all');
   };
 
   const handleStudentClick = (student: Student) => {
@@ -83,8 +83,11 @@ export default function Students({
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <StudentsHeader onAddStudent={() => setIsFormOpen(true)} onUploadCSV={()=>{}}/>
-      
+      <StudentsHeader
+        onAddStudent={() => setIsFormOpen(true)}
+        onUploadCSV={() => {}}
+      />
+
       <StudentsFilters
         searchTerm={searchTerm}
         selectedGrade={selectedGrade}
@@ -96,15 +99,15 @@ export default function Students({
       />
 
       {filteredStudents.length > 0 ? (
-        <StudentsList 
-          students={students} 
-          filteredStudents={filteredStudents} 
+        <StudentsList
+          students={students}
+          filteredStudents={filteredStudents}
           onStudentClick={handleStudentClick}
         />
       ) : (
-        <EmptyState 
-          hasStudents={students.length > 0} 
-          onAddStudent={() => setIsFormOpen(true)} 
+        <EmptyState
+          hasStudents={students.length > 0}
+          onAddStudent={() => setIsFormOpen(true)}
         />
       )}
 

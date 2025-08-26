@@ -1,4 +1,4 @@
-import { Search, Filter, Hash, X } from "lucide-react";
+import { Search, Filter, Hash, X } from 'lucide-react';
 
 interface StudentsFiltersProps {
   searchTerm: string;
@@ -19,7 +19,8 @@ export default function StudentsFilters({
   onDivisionChange,
   onClearFilters,
 }: StudentsFiltersProps) {
-  const hasActiveFilters = searchTerm || selectedGrade !== "all" || selectedDivision !== "all";
+  const hasActiveFilters =
+    searchTerm || selectedGrade !== 'all' || selectedDivision !== 'all';
 
   return (
     <div className="bg-white p-4 rounded-lg mb-6">
@@ -44,11 +45,10 @@ export default function StudentsFilters({
           <select
             value={selectedGrade}
             onChange={(e) => onGradeChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 appearance-none bg-white text-gray-900"
-          >
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 appearance-none bg-white text-gray-900">
             <option value="all">All Grades</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((grade) => (
-              <option key={grade} value={grade.toString()}>
+              <option key={grade} value={grade}>
                 Grade {grade}
               </option>
             ))}
@@ -63,10 +63,9 @@ export default function StudentsFilters({
           <select
             value={selectedDivision}
             onChange={(e) => onDivisionChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 appearance-none bg-white text-gray-900"
-          >
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 appearance-none bg-white text-gray-900">
             <option value="all">All Divisions</option>
-            {["A", "B", "C", "D", "E"].map((division) => (
+            {['A', 'B', 'C', 'D', 'E'].map((division) => (
               <option key={division} value={division}>
                 Division {division}
               </option>
@@ -75,7 +74,6 @@ export default function StudentsFilters({
         </div>
       </div>
 
-      {/* Active Filters */}
       {hasActiveFilters && (
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-700">Active filters:</span>
@@ -83,39 +81,35 @@ export default function StudentsFilters({
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               Search: {searchTerm}
               <button
-                onClick={() => onSearchChange("")}
-                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-blue-600 hover:text-blue-800"
-              >
+                onClick={() => onSearchChange('')}
+                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-blue-600 hover:text-blue-800">
                 <X className="h-3 w-3" />
               </button>
             </span>
           )}
-          {selectedGrade !== "all" && (
+          {selectedGrade !== 'all' && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
               Grade: {selectedGrade}
               <button
-                onClick={() => onGradeChange("all")}
-                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-purple-600 hover:text-purple-800"
-              >
+                onClick={() => onGradeChange('all')}
+                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-purple-600 hover:text-purple-800">
                 <X className="h-3 w-3" />
               </button>
             </span>
           )}
-          {selectedDivision !== "all" && (
+          {selectedDivision !== 'all' && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               Division: {selectedDivision}
               <button
-                onClick={() => onDivisionChange("all")}
-                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-green-600 hover:text-green-800"
-              >
+                onClick={() => onDivisionChange('all')}
+                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-green-600 hover:text-green-800">
                 <X className="h-3 w-3" />
               </button>
             </span>
           )}
           <button
             onClick={onClearFilters}
-            className="text-sm text-indigo-700 hover:text-indigo-900 font-medium"
-          >
+            className="text-sm text-indigo-700 hover:text-indigo-900 font-medium">
             Clear all
           </button>
         </div>

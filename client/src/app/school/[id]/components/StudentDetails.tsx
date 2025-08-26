@@ -1,6 +1,15 @@
 'use client';
 
-import { X, User, Calendar, Phone, Home, Hash, Book, Users, Mail, Printer, Edit } from 'lucide-react';
+import {
+  X,
+  User,
+  Phone,
+  Book,
+  Users,
+  Printer,
+  Edit,
+  Trash,
+} from 'lucide-react';
 import { Student } from '@/api/students';
 
 interface StudentDetailsProps {
@@ -9,24 +18,30 @@ interface StudentDetailsProps {
   onClose: () => void;
 }
 
-export default function StudentDetails({ student, isOpen, onClose }: StudentDetailsProps) {
+export default function StudentDetails({
+  student,
+  isOpen,
+  onClose,
+}: StudentDetailsProps) {
   if (!isOpen) return null;
 
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
-
+  const handleDelete = () => {
+    
+  };
   const handlePrint = () => {
     const printContent = document.getElementById('student-details-print');
     if (printContent) {
       const printWindow = window.open('', '_blank');
       if (printWindow) {
-        printWindow.document.write(`
+        printWindow.document.body.innerHTML = `
           <html>
             <head>
               <title>Student Details - ${student.firstName} ${student.lastName}</title>
@@ -48,7 +63,7 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
               ${printContent.innerHTML}
             </body>
           </html>
-        `);
+        `;
         printWindow.document.close();
         printWindow.print();
       }
@@ -58,8 +73,11 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
-      
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
@@ -73,7 +91,9 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold">
-                      {student.firstName} {student.middleName ? `${student.middleName} ` : ''}{student.lastName}
+                      {student.firstName}{' '}
+                      {student.middleName ? `${student.middleName} ` : ''}
+                      {student.lastName}
                     </h2>
                     <p className="text-indigo-100">Student Details</p>
                   </div>
@@ -82,14 +102,12 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   <button
                     onClick={handlePrint}
                     className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    title="Print Student Details"
-                  >
+                    title="Print Student Details">
                     <Printer className="h-5 w-5" />
                   </button>
                   <button
                     onClick={onClose}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
@@ -101,50 +119,98 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
               {/* Print Content - Hidden but used for printing */}
               <div id="student-details-print" className="hidden print:block">
                 <div className="header">
-                  <div className="student-name">{student.firstName} {student.middleName ? `${student.middleName} ` : ''}{student.lastName}</div>
+                  <div className="student-name">
+                    {student.firstName}{' '}
+                    {student.middleName ? `${student.middleName} ` : ''}
+                    {student.lastName}
+                  </div>
                   <div className="student-info">Student Details Report</div>
                 </div>
-                
+
                 <div className="section">
                   <div className="section-title">Personal Information</div>
                   <div className="info-grid">
-                    <div className="info-item"><span className="label">First Name:</span><span className="value">{student.firstName}</span></div>
-                    {student.middleName && <div className="info-item"><span className="label">Middle Name:</span><span className="value">{student.middleName}</span></div>}
-                    <div className="info-item"><span className="label">Last Name:</span><span className="value">{student.lastName}</span></div>
-                    <div className="info-item"><span className="label">Date of Birth:</span><span className="value">{formatDate(student.dateOfBirth)}</span></div>
-                    <div className="info-item"><span className="label">Gender:</span><span className="value">{student.gender || 'Not specified'}</span></div>
+                    <div className="info-item">
+                      <span className="label">First Name:</span>
+                      <span className="value">{student.firstName}</span>
+                    </div>
+                    {student.middleName && (
+                      <div className="info-item">
+                        <span className="label">Middle Name:</span>
+                        <span className="value">{student.middleName}</span>
+                      </div>
+                    )}
+                    <div className="info-item">
+                      <span className="label">Last Name:</span>
+                      <span className="value">{student.lastName}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Date of Birth:</span>
+                      <span className="value">
+                        {formatDate(student.dateOfBirth)}
+                      </span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Gender:</span>
+                      <span className="value">
+                        {student.gender || 'Not specified'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="section">
                   <div className="section-title">Academic Information</div>
                   <div className="info-grid">
-                    <div className="info-item"><span className="label">Roll Number:</span><span className="value">{student.rollNumber}</span></div>
-                    <div className="info-item"><span className="label">Grade:</span><span className="value">Grade {student.grade}</span></div>
-                    <div className="info-item"><span className="label">Division:</span><span className="value">Division {student.division}</span></div>
-                    <div className="info-item"><span className="label">Student ID:</span><span className="value">{student._id}</span></div>
+                    <div className="info-item">
+                      <span className="label">Roll Number:</span>
+                      <span className="value">{student.rollNumber}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Grade:</span>
+                      <span className="value">Grade {student.grade}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Division:</span>
+                      <span className="value">Division {student.division}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Student ID:</span>
+                      <span className="value">{student._id}</span>
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="section">
                   <div className="section-title">Family Information</div>
                   <div className="info-grid">
-                    <div className="info-item"><span className="label">Father's Name:</span><span className="value">{student.fatherName}</span></div>
-                    <div className="info-item"><span className="label">Mother's Name:</span><span className="value">{student.motherName}</span></div>
+                    <div className="info-item">
+                      <span className="label">Father's Name:</span>
+                      <span className="value">{student.fatherName}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Mother's Name:</span>
+                      <span className="value">{student.motherName}</span>
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="section">
                   <div className="section-title">Contact Information</div>
                   <div className="info-grid">
-                    <div className="info-item"><span className="label">Phone:</span><span className="value">{student.contactNumber}</span></div>
-                    <div className="info-item"><span className="label">Address:</span><span className="value">{student.address}</span></div>
+                    <div className="info-item">
+                      <span className="label">Phone:</span>
+                      <span className="value">{student.contactNumber}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Address:</span>
+                      <span className="value">{student.address}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
                 {/* Personal Information */}
                 <div className="bg-gray-50 rounded-xl p-5">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -154,17 +220,23 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">First Name:</span>
-                      <span className="font-medium text-gray-900">{student.firstName}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.firstName}
+                      </span>
                     </div>
                     {student.middleName && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Middle Name:</span>
-                        <span className="font-medium text-gray-900">{student.middleName}</span>
+                        <span className="font-medium text-gray-900">
+                          {student.middleName}
+                        </span>
                       </div>
                     )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Last Name:</span>
-                      <span className="font-medium text-gray-900">{student.lastName}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.lastName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Date of Birth:</span>
@@ -190,19 +262,27 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Roll Number:</span>
-                      <span className="font-medium text-gray-900">{student.rollNumber}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.rollNumber}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Grade:</span>
-                      <span className="font-medium text-gray-900">Grade {student.grade}</span>
+                      <span className="font-medium text-gray-900">
+                        Grade {student.grade}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Division:</span>
-                      <span className="font-medium text-gray-900">Division {student.division}</span>
+                      <span className="font-medium text-gray-900">
+                        Division {student.division}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Student ID:</span>
-                      <span className="font-medium text-gray-900 text-xs">{student._id}</span>
+                      <span className="font-medium text-gray-900 text-xs">
+                        {student._id}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -216,11 +296,15 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Father's Name:</span>
-                      <span className="font-medium text-gray-900">{student.fatherName}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.fatherName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mother's Name:</span>
-                      <span className="font-medium text-gray-900">{student.motherName}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.motherName}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -234,7 +318,9 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Phone:</span>
-                      <span className="font-medium text-gray-900">{student.contactNumber}</span>
+                      <span className="font-medium text-gray-900">
+                        {student.contactNumber}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Address:</span>
@@ -246,30 +332,28 @@ export default function StudentDetails({ student, isOpen, onClose }: StudentDeta
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={handlePrint}
-                  className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                >
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
                   <Printer className="h-4 w-4" />
                   Print Document
                 </button>
                 <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Close
-                </button>
-                <button
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
                   onClick={() => {
-                    // TODO: Implement edit functionality
                     console.log('Edit student:', student._id);
-                  }}
-                >
+                  }}>
                   <Edit className="h-4 w-4" />
                   Edit Student
+                </button>
+                <button
+                  className="px-4 py-2 bg-white text-black rounded-lg hover:bg-red-600 hover:text-white transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    handleDelete;
+                  }}>
+                  <Trash className="h-4 w-4" />
+                  Delete
                 </button>
               </div>
             </div>

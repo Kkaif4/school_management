@@ -187,7 +187,7 @@ export class StudentService {
   async findBySchool(
     schoolId: string,
     page = 1,
-    limit = 10,
+    limit = 20,
   ): Promise<StudentArrayResponse> {
     try {
       const skip = (page - 1) * limit;

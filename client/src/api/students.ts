@@ -1,9 +1,9 @@
 import { api } from './axios';
 
 export interface Student {
-  _id?: string; // Optional for creation
+  _id?: string;
   firstName: string;
-  middleName?: string; // Optional middle name
+  middleName?: string;
   lastName: string;
   dateOfBirth: string | Date;
   gender: 'male' | 'female' | 'other' | '';
@@ -17,24 +17,18 @@ export interface Student {
   address: string;
 }
 
-interface StudentArrayResponse {
-  success: boolean;
-  message: string;
-  data: Student[];
-}
-
 export async function getStudents(schoolId: string): Promise<{
+  success: boolean;
   students: Student[];
   error?: string;
 }> {
   try {
     const res = await api.get(`/student/${schoolId}`);
-    console.log('student data: ', res.data);
-    return { students: res.data.data || [] };
+    console.log(res.data);
+    return { success: true, students: res.data.data || [] };
   } catch (err: any) {
-    console.log('got error: ', err);
     const errorMsg = err?.response?.data?.message || 'Failed to fetch students';
-    return { students: [], error: errorMsg };
+    return { success: false, students: [], error: errorMsg };
   }
 }
 
@@ -50,3 +44,14 @@ export async function addStudent(
   }
 }
 
+export async function deleteStudent(
+  studentId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await api.delete(`/student/${studentId}`);
+    return { success: true, message: 'student deleted successfully' };
+  } catch (err: any) {
+    const errorMsg = err?.response?.data?.message || 'Failed to add student';
+    return { success: false, message: errorMsg };
+  }
+}

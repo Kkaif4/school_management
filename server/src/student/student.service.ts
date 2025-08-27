@@ -12,6 +12,7 @@ import { School } from 'src/schema/school.schema';
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 import { CreateStudentDto } from './dto/create-student.dto';
+import { isEmpty } from 'class-validator';
 export interface PaginationMeta {
   total: number;
   page: number;
@@ -65,6 +66,7 @@ export class StudentService {
     }
 
     const school = await this.schoolModel.findById(schoolId);
+    console.log(school);
     if (!school) {
       throw new NotFoundException('School not found');
     }
@@ -82,35 +84,53 @@ export class StudentService {
           .on('data', (row) => {
             try {
               if (
-                !row.firstName ||
-                !row.lastName ||
-                !row.dateOfBirth ||
-                !row.gender ||
-                !row.rollNumber ||
-                !row.fatherName ||
-                !row.motherName ||
-                !row.grade ||
-                !row.contactNumber ||
-                !row.address
+                isEmpty(row.studentId) ||
+                isEmpty(row.registerNumber) ||
+                isEmpty(row.firstName) ||
+                isEmpty(row.lastName) ||
+                isEmpty(row.dateOfBirth) ||
+                isEmpty(row.birthPlace) ||
+                isEmpty(row.gender) ||
+                isEmpty(row.rollNumber) ||
+                isEmpty(row.fatherName) ||
+                isEmpty(row.motherName) ||
+                isEmpty(row.adhaar) ||
+                isEmpty(row.cast) ||
+                isEmpty(row.religion) ||
+                isEmpty(row.nationality) ||
+                isEmpty(row.grade) ||
+                isEmpty(row.division) ||
+                isEmpty(row.contactNumber) ||
+                isEmpty(row.address) ||
+                isEmpty(row.admissionDate)
               ) {
                 errors.push({ row, error: 'Missing required fields' });
                 return;
               }
 
               const student = new this.studentModel({
+                studentId: Number(row.studentId),
+                registerNumber: Number(row.registerNumber),
                 firstName: row.firstName,
                 middleName: row.middleName || null,
                 lastName: row.lastName,
-                dateOfBirth: new Date(row.dateOfBirth),
+                dateOfBirth: new Date(row.dateOfBirth).toISOString(),
+                birthPlace: row.birthPlace,
                 gender: row.gender.toLowerCase() as Gender,
-                rollNumber: row.rollNumber,
+                rollNumber: Number(row.rollNumber),
                 fatherName: row.fatherName,
                 motherName: row.motherName,
-                schoolId: schoolId,
+                adhaar: row.adhaar,
+                cast: row.cast,
+                religion: row.religion,
+                nationality: row.nationality,
                 grade: Number(row.grade),
                 division: (row.division || Divisions.A) as Divisions,
                 contactNumber: row.contactNumber,
                 address: row.address,
+                previousSchoolName: row.previousSchoolName || null,
+                admissionDate: new Date(row.admissionDate).toISOString(),
+                schoolId: schoolId,
               });
 
               savePromises.push(

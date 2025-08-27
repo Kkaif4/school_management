@@ -37,6 +37,7 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
+    console.log('Received file:');
     return await this.studentService.processCSVFile(file, schoolId);
   }
 

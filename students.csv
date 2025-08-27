@@ -1,23 +1,21 @@
-firstName,middleName,lastName,dateOfBirth,gender,rollNumber,fatherName,motherName,grade,division,contactNumber,address
-Rahul,Kumar,Sharma,2008-05-12,male,101,Arun Sharma,Seema Sharma,10,A,9876543210,"123 MG Road, Pune"
-Ayesha,,Khan,2009-11-23,female,102,Imran Khan,Sabina Khan,9,B,9123456780,"45 Park Street, Mumbai"
-Rohan,Prakash,Mehta,2007-04-18,male,103,Vinod Mehta,Sunita Mehta,11,C,9876501234,"56 Lake Road, Delhi"
-Sneha,,Patel,2010-01-09,female,104,Rajesh Patel,Kiran Patel,8,A,9123467891,"78 Green Colony, Ahmedabad"
-Aditya,,Verma,2006-07-22,male,105,Deepak Verma,Anita Verma,12,B,9823456789,"11 Nehru Nagar, Lucknow"
-Priya,Lata,Gupta,2008-09-14,female,106,Manoj Gupta,Shalini Gupta,10,C,9765432109,"98 Civil Lines, Jaipur"
-Aman,,Yadav,2009-12-01,male,107,Rakesh Yadav,Sarita Yadav,9,A,9345678921,"23 GT Road, Kanpur"
-Neha,Shree,Mishra,2010-03-21,female,108,Ajay Mishra,Ritu Mishra,8,B,9654321987,"67 Chowk Bazaar, Varanasi"
-Karan,,Singh,2007-05-30,male,109,Suresh Singh,Meena Singh,11,A,9456781234,"45 Rajpath, Delhi"
-Pooja,,Rathore,2008-11-19,female,110,Naresh Rathore,Kusum Rathore,10,D,9856123478,"32 Hawa Mahal Road, Jaipur"
-Arjun,,Joshi,2006-02-08,male,111,Hemant Joshi,Smita Joshi,12,A,9876123450,"12 Station Road, Indore"
-Meera,Anjali,Desai,2009-06-11,female,112,Harish Desai,Seema Desai,9,C,9321456780,"89 University Road, Surat"
-Vikram,,Chauhan,2007-07-25,male,113,Satish Chauhan,Pushpa Chauhan,11,B,9213456789,"67 Residency Area, Bhopal"
-Kavya,,Iyer,2010-10-17,female,114,Anil Iyer,Lakshmi Iyer,8,D,9987456321,"21 Gandhi Street, Chennai"
-Manish,,Tiwari,2008-12-05,male,115,Sanjay Tiwari,Rekha Tiwari,10,B,9768123456,"15 Charbagh, Lucknow"
-Ritika,,Kapoor,2009-02-20,female,116,Rohit Kapoor,Anju Kapoor,9,A,9543216780,"72 South City, Gurgaon"
-Sahil,,Sheikh,2007-08-09,male,117,Imtiaz Sheikh,Farah Sheikh,11,D,9123456790,"36 Marine Drive, Mumbai"
-Ananya,,Banerjee,2010-09-23,female,118,Soumen Banerjee,Sharmila Banerjee,8,C,9234567891,"44 Ballygunge, Kolkata"
-Nikhil,,Reddy,2006-03-16,male,119,Ramesh Reddy,Padma Reddy,12,C,9345612789,"58 Jubilee Hills, Hyderabad"
-Simran,,Kaur,2009-04-29,female,120,Gurpreet Singh,Harpreet Kaur,9,D,9786512340,"76 Model Town, Amritsar"
-Dev,,Naik,2007-11-12,male,121,Shankar Naik,Vidya Naik,11,A,9456123780,"84 Camp Area, Goa"
-Ishita,,Shah,2008-01-27,female,122,Mahesh Shah,Rupal Shah,10,A,9321789456,"55 C.G. Road, Ahmedabad"
+studentId,registerNumber,firstName,middleName,lastName,dateOfBirth,birthPlace,gender,rollNumber,fatherName,motherName,adhaar,cast,religion,nationality,grade,division,contactNumber,address,previousSchoolName,admissionDate
+101,5001,Rahul,Kumar,Sharma,2008-05-12,Pune,male,1,Arun Sharma,Seema Sharma,234567890123,Brahmin,Hindu,Indian,10,A,9876543210,"123 MG Road, Pune",St. Xavier School,2020-06-15
+102,5002,Ayesha,,Khan,2009-11-23,Mumbai,female,2,Imran Khan,Sabina Khan,345678901234,Pathan,Muslim,Indian,9,B,9123456780,"45 Park Street, Mumbai",Don Bosco,2021-07-20
+103,5003,Aman,Deep,Verma,2007-02-10,Delhi,male,3,Rakesh Verma,Sunita Verma,456789012345,Baniya,Hindu,Indian,11,C,9988776655,"89 GK Enclave, Delhi",DAV School,2019-05-10
+104,5004,Neha,,Patel,2008-09-05,Ahmedabad,female,4,Suresh Patel,Rekha Patel,567890123456,Patel,Hindu,Indian,10,A,8877665544,"12 CG Road, Ahmedabad",Bright School,2020-06-25
+105,5005,Arjun,Raj,Mehta,2009-04-18,Surat,male,5,Kiran Mehta,Alka Mehta,678901234567,Vaishya,Hindu,Indian,9,B,7766554433,"55 Ring Road, Surat",Delhi Public School,2021-07-15
+106,5006,Priya,,Nair,2007-07-22,Kochi,female,6,Rajesh Nair,Deepa Nair,789012345678,Nair,Hindu,Indian,11,C,6655443322,"77 MG Road, Kochi",Choice School,2019-06-18
+107,5007,Rohan,Vikram,Gupta,2008-12-01,Varanasi,male,7,Manoj Gupta,Shalini Gupta,890123456789,Gupta,Hindu,Indian,10,A,5544332211,"34 Lahurabir, Varanasi",Central School,2020-07-12
+108,5008,Simran,,Singh,2009-03-30,Amritsar,female,8,Hardeep Singh,Jaspreet Kaur,901234567890,Sikh,Sikh,Indian,9,B,9445566778,"90 Mall Road, Amritsar",Sacred Heart,2021-06-22
+109,5009,Vikram,Arun,Reddy,2007-10-19,Hyderabad,male,9,Anil Reddy,Meena Reddy,234567890987,Reddy,Hindu,Indian,11,C,9334455667,"12 Jubilee Hills, Hyderabad",Oakridge,2019-07-05
+110,5010,Ishita,,Das,2008-01-14,Kolkata,female,10,Pradip Das,Anjali Das,345678901876,Kayastha,Hindu,Indian,10,A,9223344556,"77 Park Street, Kolkata",La Martiniere,2020-06-10
+111,5011,Samar,Raj,Choudhary,2009-05-21,Jaipur,male,11,Devendra Choudhary,Pooja Choudhary,456789012765,Choudhary,Hindu,Indian,9,B,9112233445,"88 MI Road, Jaipur",Maharaja School,2021-07-14
+112,5012,Ananya,,Pillai,2007-11-08,Trivandrum,female,12,Santosh Pillai,Kavita Pillai,567890123654,Pillai,Hindu,Indian,11,C,9001122334,"22 MG Road, Trivandrum",Holy Angels,2019-06-28
+113,5013,Aditya,Vinay,Kapoor,2008-08-17,Chandigarh,male,13,Vinay Kapoor,Ritu Kapoor,678901234543,Khatri,Hindu,Indian,10,A,9890011223,"55 Sector 17, Chandigarh",St. John’s,2020-07-18
+114,5014,Meera,,Iyer,2009-02-02,Chennai,female,14,Ramesh Iyer,Anitha Iyer,789012345432,Iyer,Hindu,Indian,9,B,9881122334,"14 Anna Nagar, Chennai",PS Senior,2021-06-11
+115,5015,Krishna,Dev,Mishra,2007-09-12,Varanasi,male,15,Satyam Mishra,Kamla Mishra,890123456321,Brahmin,Hindu,Indian,11,C,9778899001,"101 Dashashwamedh, Varanasi",Sunbeam,2019-05-29
+116,5016,Shreya,,Joshi,2008-04-26,Nashik,female,16,Amol Joshi,Smita Joshi,901234567210,Maratha,Hindu,Indian,10,A,9667788990,"23 College Road, Nashik",Fravashi,2020-06-08
+117,5017,Sahil,Raj,Chauhan,2009-12-13,Lucknow,male,17,Raj Chauhan,Sunita Chauhan,912345678901,Chauhan,Hindu,Indian,9,B,9556677889,"66 Hazratganj, Lucknow",CMS,2021-07-03
+118,5018,Kavya,,Menon,2007-03-09,Kozhikode,female,18,Mohan Menon,Anju Menon,923456789012,Menon,Hindu,Indian,11,C,9445566770,"11 Beach Road, Kozhikode",St. Joseph’s,2019-06-13
+119,5019,Arnav,Pratap,Thakur,2008-06-28,Indore,male,19,Sanjay Thakur,Reena Thakur,934567890123,Thakur,Hindu,Indian,10,A,9334455660,"32 MG Road, Indore",Shishukunj,2020-07-01
+120,5020,Sana,,Sheikh,2009-01-05,Bhopal,female,20,Imran Sheikh,Farah Sheikh,945678901234,Sheikh,Muslim,Indian,9,B,9223344550,"78 New Market, Bhopal",International School,2021-07-19

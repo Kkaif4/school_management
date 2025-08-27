@@ -52,8 +52,9 @@ export class StudentService {
       };
       return response;
     } catch (error) {
+      console.error('Error creating student:', error);
       throw new BadRequestException(
-        'Something went wrong creating new student',
+        error.message || 'Something went wrong creating new student',
       );
     }
   }

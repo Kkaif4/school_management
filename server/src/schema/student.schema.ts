@@ -55,8 +55,15 @@ export class Student extends Document {
   @Prop({ required: true })
   motherName: string;
 
-  @Prop({ required: true, min: 12, max: 12 })
-  adhaar: number;
+  @Prop({
+    type: String,
+    required: true,
+    match: [
+      /^[2-9][0-9]{11}$/,
+      'Aadhaar must be 12 digits and cannot start with 0 or 1',
+    ],
+  })
+  adhaar: string;
 
   @Prop({ required: true })
   cast: string;

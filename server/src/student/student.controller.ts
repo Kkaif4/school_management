@@ -27,7 +27,6 @@ export class StudentController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   async create(@Body() createStudentDto: CreateStudentDto) {
-    console.log('here im in post end point of student');
     return await this.studentService.create(createStudentDto);
   }
 

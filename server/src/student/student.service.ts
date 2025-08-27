@@ -38,7 +38,6 @@ export class StudentService {
     createStudentDto: CreateStudentDto,
   ): Promise<StudentResponseDto> {
     try {
-      console.log('creating new student');
       const school = await this.schoolModel.findById({
         _id: createStudentDto.schoolId,
       });
@@ -51,7 +50,6 @@ export class StudentService {
         message: 'Student created successfully',
         data: student,
       };
-      console.log('new student created');
       return response;
     } catch (error) {
       throw new BadRequestException(

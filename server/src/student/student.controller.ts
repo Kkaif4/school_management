@@ -27,7 +27,6 @@ export class StudentController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   async create(@Body() createStudentDto: CreateStudentDto) {
-    console.log('here im in post end point of student');
     return await this.studentService.create(createStudentDto);
   }
 
@@ -38,6 +37,7 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
+    console.log('Received file:');
     return await this.studentService.processCSVFile(file, schoolId);
   }
 

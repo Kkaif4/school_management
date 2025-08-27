@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Student } from '@/api/students';
-import StudentsHeader from './StudentsHeader';
-import StudentsFilters from './StudentsFilters';
-import StudentsList from './StudentsList';
-import EmptyState from './EmptyState';
-import AddStudentModal from './AddStudentModal';
-import StudentDetails from './StudentDetails';
+import { useState, useMemo, useRef } from "react";
+import papa from "papaparse";
+import { Student } from "@/api/students";
+import { api } from "@/api/axios";
+import StudentsHeader from "./StudentsHeader";
+import StudentsFilters from "./StudentsFilters";
+import StudentsList from "./StudentsList";
+import EmptyState from "./EmptyState";
+import AddStudentModal from "./AddStudentModal";
+import StudentDetails from "./StudentDetails";
 
 interface StudentsProps {
   schoolId: string;
@@ -23,11 +25,14 @@ export default function Students({
   loading,
 }: StudentsProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGrade, setSelectedGrade] = useState<string>('all');
-  const [selectedDivision, setSelectedDivision] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGrade, setSelectedGrade] = useState<string>("all");
+  const [selectedDivision, setSelectedDivision] = useState<string>("all");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Ref for hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter students based on search and filters
   const filteredStudents = useMemo(() => {
@@ -40,18 +45,18 @@ export default function Students({
           .includes(searchTerm.toLowerCase());
 
       const matchesGrade =
-        selectedGrade === 'all' || student.grade === Number(selectedGrade);
+        selectedGrade === "all" || student.grade === Number(selectedGrade);
       const matchesDivision =
-        selectedDivision === 'all' || student.division === selectedDivision;
+        selectedDivision === "all" || student.division === selectedDivision;
 
       return matchesSearch && matchesGrade && matchesDivision;
     });
   }, [students, searchTerm, selectedGrade, selectedDivision]);
 
   const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedGrade('all');
-    setSelectedDivision('all');
+    setSearchTerm("");
+    setSelectedGrade("all");
+    setSelectedDivision("all");
   };
 
   const handleStudentClick = (student: Student) => {
@@ -62,6 +67,46 @@ export default function Students({
   const handleCloseDetails = () => {
     setIsDetailsOpen(false);
     setSelectedStudent(null);
+  };
+
+  // Trigger file input on "Upload CSV"
+  const handleUploadCSVClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle CSV file selection
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("schoolId", schoolId); // send schoolId
+
+    try {
+      const response = await api.post("/student/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert(
+        `${response.data.saved || "Some"} students uploaded successfully!`
+      );
+
+      // TODO: refresh students list after upload
+    } catch (error: any) {
+      console.error("Upload failed:", error);
+      alert(
+        error.response?.data?.message ||
+          "Failed to upload students. Please check CSV format."
+      );
+    }
+
+    // Reset file input (so user can re-upload same file)
+    event.target.value = "";
   };
 
   if (loading) {
@@ -87,7 +132,16 @@ export default function Students({
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
       <StudentsHeader
         onAddStudent={() => setIsFormOpen(true)}
-        onUploadCSV={() => {}}
+        onUploadCSV={handleUploadCSVClick}
+      />
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        accept=".csv"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleFileChange}
       />
 
       <StudentsFilters

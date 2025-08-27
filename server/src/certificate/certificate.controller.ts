@@ -36,7 +36,7 @@ export class CertificateController {
   //   return await this.certificateService.create(createCertificateDto);
   // }
 
-  @Get('id')
+  @Get(':id')
   async generateCertificate(@Param('id') id: string) {
     return await this.certificateService.generateCertificate(id);
   }

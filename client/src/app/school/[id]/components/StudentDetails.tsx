@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   X,
@@ -9,8 +9,9 @@ import {
   Printer,
   Edit,
   Trash,
-} from 'lucide-react';
-import { Student } from '@/api/students';
+} from "lucide-react";
+import { Student } from "@/api/students";
+import { api } from "@/api/axios";
 
 interface StudentDetailsProps {
   student: Student;
@@ -27,52 +28,50 @@ export default function StudentDetails({
 
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
   const handleDelete = () => {};
-  const handlePrint = () => {
-    const printContent = document.getElementById('student-details-print');
-    if (printContent) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.body.innerHTML = `
-          <html>
-            <head>
-              <title>Student Details - ${student.firstName} ${student.lastName}</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #4f46e5; padding-bottom: 20px; }
-                .student-name { font-size: 24px; font-weight: bold; margin-bottom: 5px; color: #4f46e5; }
-                .student-info { color: #666; }
-                .section { margin-bottom: 25px; }
-                .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #374151; border-left: 4px solid #4f46e5; padding-left: 12px; }
-                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-                .info-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
-                .label { font-weight: 600; color: #6b7280; }
-                .value { color: #111827; }
-                @media print { body { margin: 0; } }
-              </style>
-            </head>
-            <body>
-              ${printContent.innerHTML}
-            </body>
-          </html>
-        `;
-        printWindow.document.close();
-        printWindow.print();
-      }
+  const handlePrint = async () => {
+  if (!student?._id) {
+    console.error("Student ID is missing.");
+    alert("Could not open certificate because the student ID is not available.");
+    return;
+  }
+
+  try {
+    // Call backend to get certificate HTML
+    const response = await api.get(`/certificate/${student._id}`, {
+      responseType: "text", // Expect raw HTML
+    });
+
+    const certificateHtml = response.data;
+
+    // Open certificate in a new tab
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+
+    if (printWindow) {
+      printWindow.document.write(certificateHtml);
+      printWindow.document.close();
+      printWindow.focus(); // Just open, no auto-print
+    } else {
+      alert("Please allow pop-ups for this website to view the certificate.");
     }
-  };
+  } catch (error) {
+    console.error("Error opening certificate:", error);
+    alert("An error occurred while trying to open the certificate. See the console for details.");
+  }
+};
+
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/10 backdrop-blur-xs z-40"
         onClick={onClose}
       />
 
@@ -89,8 +88,8 @@ export default function StudentDetails({
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold">
-                      {student.firstName}{' '}
-                      {student.middleName ? `${student.middleName} ` : ''}
+                      {student.firstName}{" "}
+                      {student.middleName ? `${student.middleName} ` : ""}
                       {student.lastName}
                     </h2>
                     <p className="text-indigo-100">Student Details</p>
@@ -100,12 +99,14 @@ export default function StudentDetails({
                   <button
                     onClick={handlePrint}
                     className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    title="Print Student Details">
+                    title="Print Student Details"
+                  >
                     <Printer className="h-5 w-5" />
                   </button>
                   <button
                     onClick={onClose}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
@@ -118,8 +119,8 @@ export default function StudentDetails({
               <div id="student-details-print" className="hidden print:block">
                 <div className="header">
                   <div className="student-name">
-                    {student.firstName}{' '}
-                    {student.middleName ? `${student.middleName} ` : ''}
+                    {student.firstName}{" "}
+                    {student.middleName ? `${student.middleName} ` : ""}
                     {student.lastName}
                   </div>
                   <div className="student-info">Student Details Report</div>
@@ -151,7 +152,7 @@ export default function StudentDetails({
                     <div className="info-item">
                       <span className="label">Gender:</span>
                       <span className="value">
-                        {student.gender || 'Not specified'}
+                        {student.gender || "Not specified"}
                       </span>
                     </div>
                   </div>
@@ -245,7 +246,7 @@ export default function StudentDetails({
                     <div className="flex justify-between">
                       <span className="text-gray-600">Gender:</span>
                       <span className="font-medium text-gray-900 capitalize">
-                        {student.gender || 'Not specified'}
+                        {student.gender || "Not specified"}
                       </span>
                     </div>
                   </div>
@@ -333,15 +334,17 @@ export default function StudentDetails({
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={handlePrint}
-                  className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
                   <Printer className="h-4 w-4" />
                   Print Document
                 </button>
                 <button
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
                   onClick={() => {
-                    console.log('Edit student:', student._id);
-                  }}>
+                    console.log("Edit student:", student._id);
+                  }}
+                >
                   <Edit className="h-4 w-4" />
                   Edit Student
                 </button>
@@ -349,7 +352,8 @@ export default function StudentDetails({
                   className="px-4 py-2 bg-white text-black rounded-lg hover:bg-red-600 hover:text-white transition-colors flex items-center gap-2"
                   onClick={() => {
                     handleDelete;
-                  }}>
+                  }}
+                >
                   <Trash className="h-4 w-4" />
                   Delete
                 </button>

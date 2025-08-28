@@ -26,6 +26,11 @@ export interface StudentArrayResponse {
   data: Student[];
   pagination: PaginationMeta;
 }
+
+// Helper function to clamp a number between min and max values
+function clamp(num: number, min: number, max: number): number {
+  return Math.min(Math.max(num, min), max);
+}
 @Injectable()
 export class StudentService {
   constructor(
@@ -171,58 +176,55 @@ export class StudentService {
     });
   }
 
-  async findAll(page = 1, limit = 10): Promise<StudentArrayResponse> {
-    try {
-      // Convert page & limit into numbers and prevent invalid values
-      const pageNumber = Math.max(1, Number(page));
-      const pageSize = Math.max(1, Number(limit));
-
-      const skip = (pageNumber - 1) * pageSize;
-
-      // Fetch students with pagination
-      const students = await this.studentModel
-        .find()
-        .skip(skip)
-        .limit(pageSize)
-        .exec();
-
-      const total = await this.studentModel.countDocuments();
-
-      if (!students || students.length === 0) {
-        throw new NotFoundException('Students not found');
-      }
-
-      return {
-        success: true,
-        message: 'Students found successfully',
-        pagination: {
-          total, // total number of students
-          page: pageNumber, // current page
-          limit: pageSize, // records per page
-          totalPages: Math.ceil(total / pageSize),
-        },
-        data: students,
-      };
-    } catch (error) {
-      throw new BadRequestException(error.message || 'Something went wrong');
-    }
-  }
-
-  async findBySchool(
-    schoolId: string,
+  async findAll(
     page = 1,
-    limit = 20,
+    limit = 10,
+    sort: string = 'createdAt',
+    order: 'asc' | 'desc' = 'desc',
+    search?: string,
   ): Promise<StudentArrayResponse> {
     try {
-      const skip = (page - 1) * limit;
+      // Validate and normalize pagination params
+      const pageNumber = Math.max(1, Number(page));
+      const pageSize = clamp(Number(limit), 1, 100); // Limit max page size to 100
+      const skip = (pageNumber - 1) * pageSize;
 
+      // Build query with search if provided
+      let query = this.studentModel.find();
+      if (search) {
+        query = query.or([
+          { firstName: new RegExp(search, 'i') },
+          { lastName: new RegExp(search, 'i') },
+          { rollNumber: new RegExp(search, 'i') },
+          { grade: new RegExp(search, 'i') },
+        ]);
+      }
+
+      // Execute query with pagination and sorting in parallel
       const [students, total] = await Promise.all([
-        this.studentModel.find({ schoolId }).skip(skip).limit(limit),
-        this.studentModel.countDocuments({ schoolId }),
+        query
+          .sort({ [sort]: order })
+          .skip(skip)
+          .limit(pageSize)
+          .select('-__v') // Exclude version field
+          .lean() // Convert to plain JS object for better performance
+          .exec(),
+        query.clone().countDocuments(), // Use clone() to avoid modifying original query
       ]);
 
+      // Return empty response instead of error for no results
       if (!students || students.length === 0) {
-        throw new NotFoundException('Students not found');
+        return {
+          success: true,
+          message: 'No students found',
+          pagination: {
+            total: 0,
+            page: pageNumber,
+            limit: pageSize,
+            totalPages: 0,
+          },
+          data: [],
+        };
       }
 
       return {
@@ -230,14 +232,101 @@ export class StudentService {
         message: 'Students found successfully',
         pagination: {
           total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
+          page: pageNumber,
+          limit: pageSize,
+          totalPages: Math.ceil(total / pageSize),
         },
         data: students,
       };
     } catch (error) {
-      throw new BadRequestException(error.message || 'Something went wrong');
+      console.error('Error in findAll:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Failed to fetch students. Please try again later.',
+      );
+    }
+  }
+
+  async findBySchool(
+    schoolId: string,
+    page = 1,
+    limit = 20,
+    sort: string = 'createdAt',
+    order: 'asc' | 'desc' = 'desc',
+    search?: string,
+  ): Promise<StudentArrayResponse> {
+    try {
+      // Validate school ID
+      if (!Types.ObjectId.isValid(schoolId)) {
+        throw new BadRequestException('Invalid school ID');
+      }
+
+      // Validate and normalize pagination params
+      const pageNumber = Math.max(1, Number(page));
+      const pageSize = clamp(Number(limit), 1, 100);
+      const skip = (pageNumber - 1) * pageSize;
+
+      // Build base query
+      let query = this.studentModel.find({ schoolId });
+
+      // Add search if provided
+      if (search) {
+        query = query.or([
+          { firstName: new RegExp(search, 'i') },
+          { lastName: new RegExp(search, 'i') },
+          { rollNumber: new RegExp(search, 'i') },
+          { grade: new RegExp(search, 'i') },
+        ]);
+      }
+
+      // Execute query with pagination and sorting in parallel
+      const [students, total] = await Promise.all([
+        query
+          .sort({ [sort]: order })
+          .skip(skip)
+          .limit(pageSize)
+          .select('-__v')
+          .lean()
+          .exec(),
+        query.clone().countDocuments(),
+      ]);
+
+      // Return empty response instead of error for no results
+      if (!students || students.length === 0) {
+        return {
+          success: true,
+          message: 'No students found for this school',
+          pagination: {
+            total: 0,
+            page: pageNumber,
+            limit: pageSize,
+            totalPages: 0,
+          },
+          data: [],
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Students found successfully',
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        },
+        data: students,
+      };
+    } catch (error) {
+      console.error('Error in findBySchool:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Failed to fetch school students. Please try again later.',
+      );
     }
   }
 

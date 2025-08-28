@@ -1,5 +1,5 @@
-import { Users } from "lucide-react";
-import { Student } from "@/api/students";
+import { Users } from 'lucide-react';
+import { Student } from '@/api/students';
 
 interface StudentsListProps {
   students: Student[];
@@ -7,7 +7,11 @@ interface StudentsListProps {
   onStudentClick: (student: Student) => void;
 }
 
-export default function StudentsList({ students, filteredStudents, onStudentClick }: StudentsListProps) {
+export default function StudentsList({
+  students,
+  filteredStudents,
+  onStudentClick,
+}: StudentsListProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -20,8 +24,7 @@ export default function StudentsList({ students, filteredStudents, onStudentClic
           <li
             key={student._id}
             className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-            onClick={() => onStudentClick(student)}
-          >
+            onClick={() => onStudentClick(student)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-indigo-100 p-3 rounded-full">
@@ -48,13 +51,12 @@ export default function StudentsList({ students, filteredStudents, onStudentClic
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 className="text-indigo-600 hover:text-indigo-800 text-sm font-medium hover:bg-indigo-50 px-3 py-1 rounded-md transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   onStudentClick(student);
-                }}
-              >
+                }}>
                 View Details
               </button>
             </div>

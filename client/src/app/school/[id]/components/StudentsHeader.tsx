@@ -1,11 +1,14 @@
-import { Users, Plus, Upload } from "lucide-react";
+import { Users, Plus, Upload } from 'lucide-react';
 
 interface StudentsHeaderProps {
   onAddStudent: () => void;
-  onUploadCSV: () => void; 
+  onUploadCSV: () => void;
 }
 
-export default function StudentsHeader({ onAddStudent, onUploadCSV }: StudentsHeaderProps) {
+export default function StudentsHeader({
+  onAddStudent,
+  onUploadCSV,
+}: StudentsHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
       {/* Title + Subtitle */}
@@ -23,15 +26,13 @@ export default function StudentsHeader({ onAddStudent, onUploadCSV }: StudentsHe
       <div className="flex gap-3">
         <button
           onClick={onUploadCSV}
-          className="bg-gray-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
-        >
+          className="bg-gray-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md">
           <Upload className="h-4 w-4" />
           Upload CSV
         </button>
         <button
           onClick={onAddStudent}
-          className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
-        >
+          className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md">
           <Plus className="h-4 w-4" />
           Add Student
         </button>

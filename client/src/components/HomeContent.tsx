@@ -6,14 +6,17 @@ import SchoolHeader from './SchoolHeader';
 import SchoolInfo from './SchoolInfo';
 import StatsOverview from './StatsOverview';
 
-
 interface HomeContentProps {
   school: SchoolType;
   students: Student[];
   teachers: Teacher[];
 }
 
-export default function HomeContent({ school, students, teachers }: HomeContentProps) {
+export default function HomeContent({
+  school,
+  students,
+  teachers,
+}: HomeContentProps) {
   return (
     <div className="space-y-8">
       <SchoolHeader school={school} />

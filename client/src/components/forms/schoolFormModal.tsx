@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/api/axios";
-import { School } from "@/api/school";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/api/axios';
+import { School } from '@/api/school';
 
 interface SchoolFormData {
   name: string;
@@ -27,33 +27,33 @@ export default function SchoolFormModal({
 }: SchoolFormModalProps) {
   const { data } = useAuth();
   const [formData, setFormData] = useState<SchoolFormData>({
-    name: "",
-    principalName: "",
-    address: "",
-    contactNumber: "",
+    name: '',
+    principalName: '',
+    address: '',
+    contactNumber: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   // Reset form when modal opens/closes or when editingSchool changes
   useEffect(() => {
     if (isOpen) {
       if (editingSchool) {
         setFormData({
-          name: editingSchool.name || "",
-          principalName: "", // Note: API response doesn't include principalName
-          address: editingSchool.location || "",
-          contactNumber: "", // Note: API response doesn't include contactNumber
+          name: editingSchool.name || '',
+          principalName: '', // Note: API response doesn't include principalName
+          address: editingSchool.location || '',
+          contactNumber: '', // Note: API response doesn't include contactNumber
         });
       } else {
         setFormData({
-          name: "",
-          principalName: "",
-          address: "",
-          contactNumber: "",
+          name: '',
+          principalName: '',
+          address: '',
+          contactNumber: '',
         });
       }
-      setError("");
+      setError('');
     }
   }, [isOpen, editingSchool]);
 
@@ -67,7 +67,7 @@ export default function SchoolFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       const payload = {
@@ -78,21 +78,20 @@ export default function SchoolFormModal({
       let response;
 
       if (editingSchool) {
-        // Update existing school
         response = await api.put(`/school/${editingSchool.id}`, payload);
       } else {
-        // Create new school
-        response = await api.post("/school", payload);
-        
+        response = await api.post('/school', payload);
       }
 
       if (onSuccess) {
         const schoolData = response.data?.data || response.data;
         onSuccess({
-          id: schoolData._id || schoolData.id || editingSchool?.id || "",
+          id: schoolData._id || schoolData.id || editingSchool?.id || '',
           name: schoolData.name,
           location: schoolData.address || schoolData.location,
           createdAt: schoolData.createdAt,
+          principalName: schoolData.principalName,
+          contactNumber: schoolData.contactNumber,
         });
       }
 
@@ -102,7 +101,7 @@ export default function SchoolFormModal({
         err?.response?.data?.message ||
         err?.response?.data ||
         err?.message ||
-        "Failed to save school";
+        'Failed to save school';
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -115,12 +114,11 @@ export default function SchoolFormModal({
     <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50 p-4">
       <div
         className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+        onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-blue-600 p-4 text-white">
           <h2 className="text-xl font-semibold">
-            {editingSchool ? "Edit School" : "Add New School"}
+            {editingSchool ? 'Edit School' : 'Add New School'}
           </h2>
         </div>
 
@@ -136,8 +134,7 @@ export default function SchoolFormModal({
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+                className="block text-sm font-medium text-gray-700 mb-1">
                 School Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -156,8 +153,7 @@ export default function SchoolFormModal({
             <div>
               <label
                 htmlFor="principalName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+                className="block text-sm font-medium text-gray-700 mb-1">
                 Principal Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -176,8 +172,7 @@ export default function SchoolFormModal({
             <div>
               <label
                 htmlFor="address"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+                className="block text-sm font-medium text-gray-700 mb-1">
                 Address
               </label>
               <textarea
@@ -195,8 +190,7 @@ export default function SchoolFormModal({
             <div>
               <label
                 htmlFor="contactNumber"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+                className="block text-sm font-medium text-gray-700 mb-1">
                 Contact Number
               </label>
               <input
@@ -219,44 +213,39 @@ export default function SchoolFormModal({
                 disabled={loading}
                 className="px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 
              hover:bg-gray-100 hover:text-gray-900 transition-colors 
-             disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+             disabled:opacity-50 disabled:cursor-not-allowed">
                 Cancel
               </button>
 
               <button
                 type="submit"
                 disabled={loading || !data?.user?.id}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition flex items-center justify-center"
-              >
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition flex items-center justify-center">
                 {loading ? (
                   <>
                     <svg
                       className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
-                      viewBox="0 0 24 24"
-                    >
+                      viewBox="0 0 24 24">
                       <circle
                         className="opacity-25"
                         cx="12"
                         cy="12"
                         r="10"
                         stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
+                        strokeWidth="4"></circle>
                       <path
                         className="opacity-75"
                         fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {editingSchool ? "Updating..." : "Saving..."}
+                    {editingSchool ? 'Updating...' : 'Saving...'}
                   </>
                 ) : editingSchool ? (
-                  "Update School"
+                  'Update School'
                 ) : (
-                  "Create"
+                  'Create'
                 )}
               </button>
             </div>

@@ -1,21 +1,22 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useRef } from "react";
-import papa from "papaparse";
-import { Student } from "@/api/students";
-import { api } from "@/api/axios";
-import StudentsHeader from "./StudentsHeader";
-import StudentsFilters from "./StudentsFilters";
-import StudentsList from "./StudentsList";
-import EmptyState from "./EmptyState";
-import AddStudentModal from "./AddStudentModal";
-import StudentDetails from "./StudentDetails";
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { Student, getStudents } from '@/api/students';
+import { api } from '@/api/axios';
+import Pagination from '@/components/common/Pagination';
+import StudentsHeader from './StudentsHeader';
+import StudentsFilters from './StudentsFilters';
+import StudentsList from './StudentsList';
+import EmptyState from './EmptyState';
+import AddStudentModal from './AddStudentModal';
+import StudentDetails from './StudentDetails';
 
 interface StudentsProps {
   schoolId: string;
   students: Student[];
   error: string | null;
   loading: boolean;
+  onRefresh: () => void;
 }
 
 export default function Students({
@@ -23,13 +24,16 @@ export default function Students({
   students,
   error,
   loading,
+  onRefresh,
 }: StudentsProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState<string>("all");
-  const [selectedDivision, setSelectedDivision] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedDivision, setSelectedDivision] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [studentsPerPage] = useState(10);
 
   // Ref for hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,18 +49,32 @@ export default function Students({
           .includes(searchTerm.toLowerCase());
 
       const matchesGrade =
-        selectedGrade === "all" || student.grade === Number(selectedGrade);
+        selectedGrade === 'all' || student.grade === Number(selectedGrade);
       const matchesDivision =
-        selectedDivision === "all" || student.division === selectedDivision;
+        selectedDivision === 'all' || student.division === selectedDivision;
 
       return matchesSearch && matchesGrade && matchesDivision;
     });
   }, [students, searchTerm, selectedGrade, selectedDivision]);
 
+  // Get current students for pagination
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentStudents = filteredStudents.slice(
+    indexOfFirstStudent,
+    indexOfLastStudent
+  );
+  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+
+  // Change page
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setSelectedGrade("all");
-    setSelectedDivision("all");
+    setSearchTerm('');
+    setSelectedGrade('all');
+    setSelectedDivision('all');
   };
 
   const handleStudentClick = (student: Student) => {
@@ -82,31 +100,29 @@ export default function Students({
     if (!file) return;
 
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("schoolId", schoolId); // send schoolId
+    formData.append('file', file);
+    formData.append('schoolId', schoolId); // send schoolId
 
     try {
-      const response = await api.post("/student/upload", formData, {
+      const response = await api.post('/student/upload', formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
 
-      alert(
-        `${response.data.saved || "Some"} students uploaded successfully!`
-      );
+      alert(`${response.data.saved || 'Some'} students uploaded successfully!`);
 
       // TODO: refresh students list after upload
     } catch (error: any) {
-      console.error("Upload failed:", error);
+      console.error('Upload failed:', error);
       alert(
         error.response?.data?.message ||
-          "Failed to upload students. Please check CSV format."
+          'Failed to upload students. Please check CSV format.'
       );
     }
 
     // Reset file input (so user can re-upload same file)
-    event.target.value = "";
+    event.target.value = '';
   };
 
   if (loading) {
@@ -135,7 +151,6 @@ export default function Students({
         onUploadCSV={handleUploadCSVClick}
       />
 
-      {/* Hidden file input */}
       <input
         type="file"
         accept=".csv"
@@ -155,11 +170,18 @@ export default function Students({
       />
 
       {filteredStudents.length > 0 ? (
-        <StudentsList
-          students={students}
-          filteredStudents={filteredStudents}
-          onStudentClick={handleStudentClick}
-        />
+        <>
+          <StudentsList
+            students={students}
+            filteredStudents={currentStudents}
+            onStudentClick={handleStudentClick}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </>
       ) : (
         <EmptyState
           hasStudents={students.length > 0}
@@ -173,7 +195,8 @@ export default function Students({
         onClose={() => setIsFormOpen(false)}
         onSuccess={() => {
           setIsFormOpen(false);
-          // You might want to refresh the student list here
+          onRefresh();
+          setCurrentPage(1); // Reset to first page after adding new student
         }}
         onCancel={() => setIsFormOpen(false)}
       />

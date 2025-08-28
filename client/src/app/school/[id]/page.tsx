@@ -5,7 +5,7 @@ import { Teacher } from '@/api/teachers';
 import { getSchoolById, School as SchoolType } from '@/api/school';
 import { useSchoolStore } from '@/app/context/store';
 import { fetchDashboardData } from '@/services/schoolDashboard.service';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useCallback } from 'react';
 import { Menu } from 'lucide-react';
 import Teachers from './components/Teachers';
 import Students from './components/Students';
@@ -28,6 +28,29 @@ export default function School({
   const [activeTab, setActiveTab] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setSchool: setGlobalSchool } = useSchoolStore();
+
+  const refreshData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { school: schoolData, error: schoolError } = await getSchoolById(
+        id
+      );
+      if (schoolError) throw new Error(schoolError);
+      if (!schoolData) throw new Error('School not found');
+
+      setSchool(schoolData);
+      setGlobalSchool(schoolData);
+
+      const dashboardData = await fetchDashboardData(id);
+      setStudents(dashboardData.students);
+      setTeachers(dashboardData.teachers);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, setGlobalSchool]);
 
   useEffect(() => {
     async function fetchData() {
@@ -78,6 +101,7 @@ export default function School({
               students={students}
               loading={loading}
               error={error}
+              onRefresh={refreshData}
             />
           </div>
         );
@@ -89,6 +113,7 @@ export default function School({
               teachers={teachers}
               loading={loading}
               error={error}
+              onRefresh={refreshData}
             />
           </div>
         );

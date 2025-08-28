@@ -9,7 +9,9 @@ interface SchoolInfoProps {
 export default function SchoolInfo({ school }: SchoolInfoProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">School Information</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        School Information
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="flex items-center space-x-3">
@@ -40,7 +42,9 @@ export default function SchoolInfo({ school }: SchoolInfoProps) {
             </div>
             <div>
               <p className="text-sm text-gray-500">Principal Name</p>
-              <p className="font-medium text-gray-900">{school.principalName}</p>
+              <p className="font-medium text-gray-900">
+                {school.principalName}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -49,7 +53,9 @@ export default function SchoolInfo({ school }: SchoolInfoProps) {
             </div>
             <div>
               <p className="text-sm text-gray-500">Contact Number</p>
-              <p className="font-medium text-gray-900">{school.contactNumber}</p>
+              <p className="font-medium text-gray-900">
+                {school.contactNumber}
+              </p>
             </div>
           </div>
         </div>

@@ -17,9 +17,18 @@ const sidebarItems = [
   { id: 'teachers', label: 'Teachers', icon: Users },
 ];
 
-export default function Sidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, onLogout }: SidebarProps) {
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  sidebarOpen,
+  setSidebarOpen,
+  onLogout,
+}: SidebarProps) {
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-200 ease-in-out lg:static lg:flex lg:flex-col`}>
+    <div
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 transition-transform duration-200 ease-in-out lg:static lg:flex lg:flex-col`}>
       {/* Sidebar Header */}
       <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center space-x-3">
@@ -30,8 +39,7 @@ export default function Sidebar({ activeTab, setActiveTab, sidebarOpen, setSideb
         </div>
         <button
           onClick={() => setSidebarOpen(false)}
-          className="lg:hidden text-gray-500 hover:text-gray-700"
-        >
+          className="lg:hidden text-gray-500 hover:text-gray-700">
           <X className="h-6 w-6" />
         </button>
       </div>
@@ -52,8 +60,7 @@ export default function Sidebar({ activeTab, setActiveTab, sidebarOpen, setSideb
                     activeTab === item.id
                       ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-600'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
+                  }`}>
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
                 </button>
@@ -67,8 +74,7 @@ export default function Sidebar({ activeTab, setActiveTab, sidebarOpen, setSideb
       <div className="p-4 border-t border-gray-200 flex-shrink-0">
         <button
           onClick={onLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors text-red-600 hover:bg-red-50 hover:text-red-700"
-        >
+          className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors text-red-600 hover:bg-red-50 hover:text-red-700">
           <LogOut className="h-5 w-5" />
           <span className="font-medium">Logout</span>
         </button>

@@ -1,15 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { Teacher } from "@/api/teachers";
-import AddTeacherForm from "./teacherForm";
-import { Search, Plus, X, Users, Mail } from "lucide-react";
+import { useState, useMemo } from 'react';
+import { Teacher } from '@/api/teachers';
+import AddTeacherForm from './teacherForm';
+import Pagination from '@/components/common/Pagination';
+import { Search, Plus, X, Users, Mail } from 'lucide-react';
 
 interface TeachersProps {
   schoolId: string;
   teachers: Teacher[];
   error: string | null;
   loading: boolean;
+  onRefresh: () => void;
 }
 
 export default function Teachers({
@@ -17,9 +19,12 @@ export default function Teachers({
   teachers,
   error,
   loading,
+  onRefresh,
 }: TeachersProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [teachersPerPage] = useState(10);
 
   // Filter teachers based on search
   const filteredTeachers = useMemo(() => {
@@ -30,6 +35,20 @@ export default function Teachers({
           teacher.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [teachers, searchTerm]);
+
+  // Get current teachers for pagination
+  const indexOfLastTeacher = currentPage * teachersPerPage;
+  const indexOfFirstTeacher = indexOfLastTeacher - teachersPerPage;
+  const currentTeachers = filteredTeachers.slice(
+    indexOfFirstTeacher,
+    indexOfLastTeacher
+  );
+  const totalPages = Math.ceil(filteredTeachers.length / teachersPerPage);
+
+  // Change page
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
 
   if (loading) {
     return (
@@ -65,8 +84,7 @@ export default function Teachers({
         </div>
         <button
           onClick={() => setIsFormOpen(true)}
-          className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
-        >
+          className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm hover:shadow-md">
           <Plus className="h-4 w-4" />
           Add Teacher
         </button>
@@ -85,9 +103,8 @@ export default function Teachers({
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
-            >
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -100,9 +117,8 @@ export default function Teachers({
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               {searchTerm}
               <button
-                onClick={() => setSearchTerm("")}
-                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-blue-400 hover:text-blue-600"
-              >
+                onClick={() => setSearchTerm('')}
+                className="ml-1.5 rounded-full flex-shrink-0 flex items-center justify-center text-blue-400 hover:text-blue-600">
                 <X className="h-3 w-3" />
               </button>
             </span>
@@ -122,8 +138,7 @@ export default function Teachers({
             {filteredTeachers.map((teacher) => (
               <li
                 key={teacher._id}
-                className="p-6 hover:bg-gray-50 transition-colors"
-              >
+                className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="bg-indigo-100 p-3 rounded-full flex-shrink-0">
@@ -153,25 +168,29 @@ export default function Teachers({
               </li>
             ))}
           </ul>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       ) : (
         <div className="text-center py-12 border border-dashed border-gray-300 rounded-xl">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-1">
             {teachers.length === 0
-              ? "No teachers registered"
-              : "No teachers match your search"}
+              ? 'No teachers registered'
+              : 'No teachers match your search'}
           </h3>
           <p className="text-gray-500 mb-4">
             {teachers.length === 0
-              ? "Get started by adding your first teacher."
+              ? 'Get started by adding your first teacher.'
               : "Try adjusting your search to find what you're looking for."}
           </p>
           {teachers.length === 0 && (
             <button
               onClick={() => setIsFormOpen(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
-            >
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add Teacher
             </button>
@@ -189,15 +208,18 @@ export default function Teachers({
               </h3>
               <button
                 onClick={() => setIsFormOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-              >
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <AddTeacherForm
               schoolId={schoolId}
-              onSuccess={() => setIsFormOpen(false)}
+              onSuccess={() => {
+                setIsFormOpen(false);
+                onRefresh();
+                setCurrentPage(1); // Reset to first page after adding new teacher
+              }}
               onCancel={() => setIsFormOpen(false)}
             />
           </div>

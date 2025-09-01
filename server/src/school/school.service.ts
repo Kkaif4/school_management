@@ -70,7 +70,6 @@ export class SchoolService {
     try {
       const schools = await this.schoolModel.find({ adminId: userId });
       if (!schools || schools.length === 0) {
-        console.log('not founds');
         throw new NotFoundException('School not found');
       }
       const response = {

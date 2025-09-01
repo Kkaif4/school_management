@@ -35,10 +35,8 @@ export default function Students({
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(10);
 
-  // Ref for hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter students based on search and filters
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
       const matchesSearch =
@@ -111,8 +109,6 @@ export default function Students({
       });
 
       alert(`${response.data.saved || 'Some'} students uploaded successfully!`);
-
-      // TODO: refresh students list after upload
     } catch (error: any) {
       console.error('Upload failed:', error);
       alert(
@@ -121,7 +117,6 @@ export default function Students({
       );
     }
 
-    // Reset file input (so user can re-upload same file)
     event.target.value = '';
   };
 

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNumber,
@@ -10,18 +11,27 @@ import {
   Max,
   IsMongoId,
   Matches,
+  ValidateNested,
 } from 'class-validator';
 
 import { Gender, Divisions } from 'src/schema/student.schema';
+class CustomFieldDto {
+  @IsString()
+  @IsNotEmpty()
+  key: string;
 
+  @IsString()
+  @IsNotEmpty()
+  value: string;
+}
 export class CreateStudentDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  studentId: number;
+  studentId: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  registerNumber: number;
+  registerNumber: string;
 
   @IsString()
   @IsNotEmpty()
@@ -104,6 +114,11 @@ export class CreateStudentDto {
   @IsDateString()
   @IsNotEmpty()
   admissionDate: string;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CustomFieldDto)
+  customFields?: CustomFieldDto[];
 
   @IsMongoId()
   @IsNotEmpty()

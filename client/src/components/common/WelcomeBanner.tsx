@@ -19,3 +19,4 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
     </div>
   );
 };
+  

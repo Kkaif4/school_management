@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsBoolean,
   IsMongoId,
+  IsPhoneNumber,
 } from 'class-validator';
 
 export class CreateSchoolDto {
@@ -44,6 +45,7 @@ export class CreateSchoolDto {
   })
   @IsString()
   @IsOptional()
+  @IsPhoneNumber()
   readonly contactNumber?: string;
 
   @ApiProperty({

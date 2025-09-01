@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Divisions, Gender, Student } from '../schema/student.schema';
@@ -27,10 +28,16 @@ export interface StudentArrayResponse {
   pagination: PaginationMeta;
 }
 
-// Helper function to clamp a number between min and max values
 function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max);
 }
+
+interface DuplicateCheckResult {
+  isDuplicate: boolean;
+  existingStudent?: Student;
+  message?: string;
+}
+
 @Injectable()
 export class StudentService {
   constructor(
@@ -39,6 +46,42 @@ export class StudentService {
     @InjectModel(School.name)
     private schoolModel: Model<School>,
   ) {}
+
+  private async checkDuplicateStudent(
+    schoolId: string,
+    grade: string | number,
+    rollNumber: string | number,
+    excludeStudentId?: string,
+  ): Promise<DuplicateCheckResult> {
+    try {
+      const query = {
+        schoolId,
+        grade: grade.toString(),
+        rollNumber: rollNumber.toString(),
+      };
+
+      if (excludeStudentId) {
+        Object.assign(query, { _id: { $ne: excludeStudentId } });
+      }
+
+      const existingStudent = await this.studentModel.findOne(query).lean();
+
+      if (existingStudent) {
+        return {
+          isDuplicate: true,
+          existingStudent,
+          message: `A student with roll number ${rollNumber} already exists in grade ${grade}`,
+        };
+      }
+
+      return { isDuplicate: false };
+    } catch (error) {
+      console.error('Error checking duplicate student:', error);
+      throw new InternalServerErrorException(
+        'Failed to check for duplicate student',
+      );
+    }
+  }
 
   async create(
     createStudentDto: CreateStudentDto,
@@ -50,17 +93,30 @@ export class StudentService {
       if (!school) {
         throw new NotFoundException('School not found');
       }
+      const duplicateCheck = await this.checkDuplicateStudent(
+        createStudentDto.schoolId,
+        createStudentDto.grade,
+        createStudentDto.rollNumber,
+      );
+      if (duplicateCheck.isDuplicate) {
+        throw new BadRequestException(duplicateCheck.message);
+      }
       const student = await this.studentModel.create(createStudentDto);
-      const response = {
+      return {
         success: true,
         message: 'Student created successfully',
         data: student,
       };
-      return response;
     } catch (error) {
-      console.error('Error creating student:', error);
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
       throw new BadRequestException(
-        error.message || 'Something went wrong creating new student',
+        error.message ||
+          'Something went wrong while creating new student. Please try again.',
       );
     }
   }
@@ -71,7 +127,6 @@ export class StudentService {
     }
 
     const school = await this.schoolModel.findById(schoolId);
-    console.log(school);
     if (!school) {
       throw new NotFoundException('School not found');
     }
@@ -80,99 +135,152 @@ export class StudentService {
     const errors: any[] = [];
     const savePromises: Promise<any>[] = [];
 
-    return new Promise((resolve, reject) => {
-      try {
-        const stream = Readable.from(file.buffer.toString());
+    return new Promise<{
+      success: boolean;
+      message: string;
+      summary: {
+        total: number;
+        saved: number;
+        failed: number;
+        duplicates: number;
+        validationFailed: number;
+        missingFields: number;
+      };
+      errors: {
+        duplicates: any[];
+        validation: any[];
+        missingFields: any[];
+      };
+    }>((resolve, reject) => {
+      const stream = Readable.from(file.buffer).pipe(csv());
 
-        stream
-          .pipe(csv())
-          .on('data', (row) => {
-            try {
-              if (
-                isEmpty(row.studentId) ||
-                isEmpty(row.registerNumber) ||
-                isEmpty(row.firstName) ||
-                isEmpty(row.lastName) ||
-                isEmpty(row.dateOfBirth) ||
-                isEmpty(row.birthPlace) ||
-                isEmpty(row.gender) ||
-                isEmpty(row.rollNumber) ||
-                isEmpty(row.fatherName) ||
-                isEmpty(row.motherName) ||
-                isEmpty(row.adhaar) ||
-                isEmpty(row.cast) ||
-                isEmpty(row.religion) ||
-                isEmpty(row.nationality) ||
-                isEmpty(row.grade) ||
-                isEmpty(row.division) ||
-                isEmpty(row.contactNumber) ||
-                isEmpty(row.address) ||
-                isEmpty(row.admissionDate)
-              ) {
-                errors.push({ row, error: 'Missing required fields' });
-                return;
-              }
-
-              const student = new this.studentModel({
-                studentId: Number(row.studentId),
-                registerNumber: Number(row.registerNumber),
-                firstName: row.firstName,
-                middleName: row.middleName || null,
-                lastName: row.lastName,
-                dateOfBirth: new Date(row.dateOfBirth).toISOString(),
-                birthPlace: row.birthPlace,
-                gender: row.gender.toLowerCase() as Gender,
-                rollNumber: Number(row.rollNumber),
-                fatherName: row.fatherName,
-                motherName: row.motherName,
-                adhaar: row.adhaar,
-                cast: row.cast,
-                religion: row.religion,
-                nationality: row.nationality,
-                grade: Number(row.grade),
-                division: (row.division || Divisions.A) as Divisions,
-                contactNumber: row.contactNumber,
-                address: row.address,
-                previousSchoolName: row.previousSchoolName || null,
-                admissionDate: new Date(row.admissionDate).toISOString(),
-                schoolId: schoolId,
-              });
-
-              savePromises.push(
-                student
-                  .save()
-                  .then((saved) => results.push(saved))
-                  .catch((err) => errors.push({ row, error: err.message })),
-              );
-            } catch (err) {
-              errors.push({ row, error: err.message });
+      stream.on('data', (row) => {
+        const task = (async () => {
+          try {
+            if (
+              !row.studentId ||
+              !row.registerNumber ||
+              !row.firstName ||
+              !row.lastName ||
+              !row.dateOfBirth ||
+              !row.birthPlace ||
+              !row.gender ||
+              !row.rollNumber ||
+              !row.fatherName ||
+              !row.motherName ||
+              !row.adhaar ||
+              !row.cast ||
+              !row.religion ||
+              !row.nationality ||
+              !row.grade ||
+              !row.division ||
+              !row.contactNumber ||
+              !row.address ||
+              !row.admissionDate
+            ) {
+              errors.push({ row, error: 'Missing required fields' });
+              return;
             }
-          })
-          .on('end', async () => {
-            try {
-              await Promise.all(savePromises);
-              resolve({
-                message: 'CSV processed',
-                saved: results.length,
-                failed: errors.length,
-                errors,
-              });
-            } catch (err) {
-              reject(new InternalServerErrorException(err.message));
-            }
-          })
-          .on('error', (err) => {
-            reject(
-              new InternalServerErrorException(
-                `CSV parsing failed: ${err.message}`,
-              ),
+
+            // Duplicate check
+            const duplicateCheck = await this.checkDuplicateStudent(
+              schoolId,
+              row.grade,
+              row.rollNumber,
             );
+
+            if (duplicateCheck.isDuplicate) {
+              errors.push({
+                row,
+                error: `Duplicate entry: ${duplicateCheck.message}`,
+                type: 'DUPLICATE',
+              });
+              return;
+            }
+
+            // Build student object
+            const studentData = {
+              studentId: row.studentId,
+              registerNumber: row.registerNumber,
+              firstName: row.firstName,
+              middleName: row.middleName || null,
+              lastName: row.lastName,
+              dateOfBirth: new Date(row.dateOfBirth).toISOString(),
+              birthPlace: row.birthPlace,
+              gender: row.gender.toLowerCase() as Gender,
+              rollNumber: Number(row.rollNumber),
+              fatherName: row.fatherName,
+              motherName: row.motherName,
+              adhaar: row.adhaar,
+              cast: row.cast,
+              religion: row.religion,
+              nationality: row.nationality,
+              grade: Number(row.grade),
+              division: (row.division || Divisions.A) as Divisions,
+              contactNumber: row.contactNumber,
+              address: row.address,
+              previousSchoolName: row.previousSchoolName || null,
+              admissionDate: new Date(row.admissionDate).toISOString(),
+              customFields: !isEmpty(row.customFields)
+                ? JSON.parse(row.customFields)
+                : [],
+              schoolId,
+            };
+
+            const student = new this.studentModel(studentData);
+
+            await student.save().then((saved) => results.push(saved));
+          } catch (err) {
+            errors.push({
+              row,
+              error: err.message,
+              type: 'VALIDATION',
+            });
+          }
+        })();
+
+        savePromises.push(task);
+      });
+
+      stream.on('end', async () => {
+        try {
+          await Promise.allSettled(savePromises);
+
+          const duplicateErrors = errors.filter((e) => e.type === 'DUPLICATE');
+          const validationErrors = errors.filter(
+            (e) => e.type === 'VALIDATION',
+          );
+          const missingFieldErrors = errors.filter((e) => !e.type);
+
+          resolve({
+            success: true,
+            message: 'CSV processing completed',
+            summary: {
+              total: results.length + errors.length,
+              saved: results.length,
+              failed: errors.length,
+              duplicates: duplicateErrors.length,
+              validationFailed: validationErrors.length,
+              missingFields: missingFieldErrors.length,
+            },
+            errors: {
+              duplicates: duplicateErrors,
+              validation: validationErrors,
+              missingFields: missingFieldErrors,
+            },
           });
-      } catch (err) {
+        } catch (err) {
+          reject(new InternalServerErrorException(err.message));
+        }
+      });
+
+      stream.on('error', (err) => {
         reject(
-          new InternalServerErrorException(`Unexpected error: ${err.message}`),
+          new InternalServerErrorException(
+            `CSV parsing failed: ${err.message}`,
+          ),
         );
-      }
+      });
     });
   }
 
@@ -184,12 +292,10 @@ export class StudentService {
     search?: string,
   ): Promise<StudentArrayResponse> {
     try {
-      // Validate and normalize pagination params
       const pageNumber = Math.max(1, Number(page));
-      const pageSize = clamp(Number(limit), 1, 100); // Limit max page size to 100
+      const pageSize = clamp(Number(limit), 1, 100);
       const skip = (pageNumber - 1) * pageSize;
 
-      // Build query with search if provided
       let query = this.studentModel.find();
       if (search) {
         query = query.or([
@@ -199,32 +305,19 @@ export class StudentService {
           { grade: new RegExp(search, 'i') },
         ]);
       }
-
-      // Execute query with pagination and sorting in parallel
       const [students, total] = await Promise.all([
         query
           .sort({ [sort]: order })
           .skip(skip)
           .limit(pageSize)
-          .select('-__v') // Exclude version field
-          .lean() // Convert to plain JS object for better performance
+          .select('-__v')
+          .lean()
           .exec(),
-        query.clone().countDocuments(), // Use clone() to avoid modifying original query
+        query.clone().countDocuments(),
       ]);
 
-      // Return empty response instead of error for no results
       if (!students || students.length === 0) {
-        return {
-          success: true,
-          message: 'No students found',
-          pagination: {
-            total: 0,
-            page: pageNumber,
-            limit: pageSize,
-            totalPages: 0,
-          },
-          data: [],
-        };
+        throw new NotFoundException('No students found');
       }
 
       return {
@@ -258,20 +351,19 @@ export class StudentService {
     search?: string,
   ): Promise<StudentArrayResponse> {
     try {
-      // Validate school ID
       if (!Types.ObjectId.isValid(schoolId)) {
         throw new BadRequestException('Invalid school ID');
       }
-
-      // Validate and normalize pagination params
+      const school = await this.schoolModel.findById({ _id: schoolId });
+      if (!school) {
+        throw new NotFoundException('School not found');
+      }
       const pageNumber = Math.max(1, Number(page));
       const pageSize = clamp(Number(limit), 1, 100);
       const skip = (pageNumber - 1) * pageSize;
 
-      // Build base query
       let query = this.studentModel.find({ schoolId });
 
-      // Add search if provided
       if (search) {
         query = query.or([
           { firstName: new RegExp(search, 'i') },
@@ -281,7 +373,6 @@ export class StudentService {
         ]);
       }
 
-      // Execute query with pagination and sorting in parallel
       const [students, total] = await Promise.all([
         query
           .sort({ [sort]: order })
@@ -293,19 +384,8 @@ export class StudentService {
         query.clone().countDocuments(),
       ]);
 
-      // Return empty response instead of error for no results
       if (!students || students.length === 0) {
-        return {
-          success: true,
-          message: 'No students found for this school',
-          pagination: {
-            total: 0,
-            page: pageNumber,
-            limit: pageSize,
-            totalPages: 0,
-          },
-          data: [],
-        };
+        throw new NotFoundException('No students found for this school');
       }
 
       return {
@@ -320,7 +400,6 @@ export class StudentService {
         data: students,
       };
     } catch (error) {
-      console.error('Error in findBySchool:', error);
       if (error instanceof BadRequestException) {
         throw error;
       }

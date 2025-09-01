@@ -34,7 +34,7 @@ export class AuthService {
 
     const response = {
       success: true,
-      message: `User logged in successfully`,
+      message: `${user.role} logged in successfully`,
       token: token,
       user: {
         id: user._id,

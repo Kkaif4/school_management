@@ -23,10 +23,10 @@ export enum Divisions {
 @Schema({ timestamps: true })
 export class Student extends Document {
   @Prop({ required: true, unique: true })
-  studentId: number;
+  studentId: string;
 
   @Prop({ required: true, unique: true })
-  registerNumber: number;
+  registerNumber: string;
 
   @Prop({ required: true })
   firstName: string;
@@ -91,6 +91,9 @@ export class Student extends Document {
 
   @Prop({ required: true })
   admissionDate: Date;
+
+  @Prop({ required: false })
+  customFields: [{ key: string; value: string }];
 
   @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
   schoolId: Types.ObjectId;

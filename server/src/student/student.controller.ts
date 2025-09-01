@@ -37,18 +37,22 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
-    console.log('Received file:');
     return await this.studentService.processCSVFile(file, schoolId);
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
+  @Roles(UserRole.SUB_ADMIN)
   findAll(): Promise<StudentArrayResponse> {
     return this.studentService.findAll();
   }
 
   @Get(':schoolId')
-  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.SUB_ADMIN,
+    UserRole.TEACHER,
+  )
   findBySchool(
     @Param('schoolId') schoolId: string,
   ): Promise<StudentArrayResponse> {

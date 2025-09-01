@@ -1,8 +1,9 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
+
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -64,7 +65,7 @@ export class SchoolService {
     }
   }
 
-  async findAll(req: Request): Promise<SchoolsArray> {
+  async findAllByUser(req: Request): Promise<SchoolsArray> {
     const userId = req['user'].id.toString();
     try {
       const schools = await this.schoolModel.find({ adminId: userId });
@@ -78,7 +79,7 @@ export class SchoolService {
       };
       return response;
     } catch (error) {
-      throw new BadRequestException();
+      throw new BadRequestException(error.message || 'Failed to fetch schools');
     }
   }
 

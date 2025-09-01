@@ -400,11 +400,12 @@ export class StudentService {
         data: students,
       };
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(
-        'Failed to fetch school students. Please try again later.',
+        error.message ||
+          'Failed to fetch school students. Please try again later.',
       );
     }
   }

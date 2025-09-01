@@ -79,7 +79,12 @@ export class SchoolService {
       };
       return response;
     } catch (error) {
-      throw new BadRequestException(error.message || 'Failed to fetch schools');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        error.message || 'Failed to fetch schools. Please try again later.',
+      );
     }
   }
 

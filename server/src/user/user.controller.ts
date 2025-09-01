@@ -33,8 +33,8 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get('/teachers')
-  async findSchoolTeachers(@Query('school') schoolId: string) {
+  @Get('/teachers/:schoolId')
+  async findSchoolTeachers(@Param('schoolId') schoolId: string) {
     return await this.userService.findSchoolTeachers(schoolId);
   }
 

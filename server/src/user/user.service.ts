@@ -61,13 +61,28 @@ export class UserService {
     return users;
   }
 
-  async findSchoolTeachers(schoolId: string) {
+  async findAllTeachers(schoolId: string) {
     try {
       const teachers = await this.userModel.find({
         schoolId,
         $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
       });
 
+      if (!teachers || teachers.length === 0) {
+        throw new NotFoundException('Teachers not found');
+      }
+      return teachers;
+    } catch (error) {
+      throw new NotFoundException('Teachers not found');
+    }
+  }
+
+  async findSchoolTeachers(schoolId: string) {
+    try {
+      const teachers = await this.userModel.find({
+        schoolId,
+        $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
+      });
       if (!teachers || teachers.length === 0) {
         throw new NotFoundException('Teachers not found');
       }

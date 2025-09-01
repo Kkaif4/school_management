@@ -70,6 +70,7 @@ export class SchoolService {
     try {
       const schools = await this.schoolModel.find({ adminId: userId });
       if (!schools || schools.length === 0) {
+        console.log('not founds');
         throw new NotFoundException('School not found');
       }
       const response = {
@@ -79,7 +80,10 @@ export class SchoolService {
       };
       return response;
     } catch (error) {
-      throw new BadRequestException(error.message || 'Failed to fetch schools');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Could not fetch schools');
     }
   }
 

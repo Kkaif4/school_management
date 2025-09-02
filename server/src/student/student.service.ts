@@ -7,7 +7,12 @@ import {
 
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Divisions, Gender, Student } from '../schema/student.schema';
+import {
+  Divisions,
+  Gender,
+  Student,
+  StudentDocument,
+} from '../schema/student.schema';
 import { StudentResponseDto } from './dto/student-response.dto';
 import { School } from 'src/schema/school.schema';
 import { Readable } from 'stream';
@@ -24,6 +29,7 @@ export interface PaginationMeta {
 export interface StudentArrayResponse {
   success: boolean;
   message: string;
+  total?: number;
   data: Student[];
 }
 
@@ -355,35 +361,19 @@ export class StudentService {
       const pageSize = clamp(Number(limit), 1, 100);
       const skip = (pageNumber - 1) * pageSize;
 
-      let query = this.studentModel.find({ schoolId });
-
-      if (search) {
-        query = query.or([
-          { firstName: new RegExp(search, 'i') },
-          { lastName: new RegExp(search, 'i') },
-          { rollNumber: new RegExp(search, 'i') },
-          { grade: new RegExp(search, 'i') },
-        ]);
-      }
-
       const [students, total] = await Promise.all([
-        query
-          .sort({ [sort]: order })
-          .skip(skip)
-          .limit(pageSize)
-          .select('-__v')
-          .lean()
-          .exec(),
-        query.clone().countDocuments(),
+        this.studentModel.find({ schoolId }).skip(skip).limit(limit),
+        this.studentModel.countDocuments({ schoolId }),
       ]);
 
       if (!students || students.length === 0) {
         throw new NotFoundException('No students found for this school');
       }
-
+      console.log('total:', total);
       return {
         success: true,
         message: 'Students found successfully',
+        total: total,
         data: students,
       };
     } catch (error) {

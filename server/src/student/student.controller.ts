@@ -9,6 +9,7 @@ import {
   Controller,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { StudentArrayResponse, StudentService } from './student.service';
 import { AuthGuard } from '../auth/guard/auth.guard';
@@ -27,6 +28,7 @@ export class StudentController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   async create(@Body() createStudentDto: CreateStudentDto) {
+    console.log('creating student with data:', createStudentDto);
     return await this.studentService.create(createStudentDto);
   }
 
@@ -37,7 +39,10 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
-    return await this.studentService.processCSVFile(file, schoolId);
+    console.log('Uploading CSV file for schoolId:', schoolId);
+    const res = await this.studentService.processCSVFile(file, schoolId);
+    console.log('Bulk upload result:', res);
+    return res;
   }
 
   @Get()
@@ -55,8 +60,13 @@ export class StudentController {
   )
   findBySchool(
     @Param('schoolId') schoolId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sort') sort?: string,
+    @Query('order') order?: 'asc' | 'desc',
   ): Promise<StudentArrayResponse> {
-    return this.studentService.findBySchool(schoolId);
+    console.log('got query params:', schoolId, { page, limit, sort, order });
+    return this.studentService.findBySchool(schoolId, page, limit, sort, order);
   }
 
   @Get(':id')

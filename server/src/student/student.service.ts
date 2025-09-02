@@ -25,7 +25,6 @@ export interface StudentArrayResponse {
   success: boolean;
   message: string;
   data: Student[];
-  pagination: PaginationMeta;
 }
 
 function clamp(num: number, min: number, max: number): number {
@@ -323,12 +322,6 @@ export class StudentService {
       return {
         success: true,
         message: 'Students found successfully',
-        pagination: {
-          total,
-          page: pageNumber,
-          limit: pageSize,
-          totalPages: Math.ceil(total / pageSize),
-        },
         data: students,
       };
     } catch (error) {
@@ -391,12 +384,6 @@ export class StudentService {
       return {
         success: true,
         message: 'Students found successfully',
-        pagination: {
-          total,
-          page: pageNumber,
-          limit: pageSize,
-          totalPages: Math.ceil(total / pageSize),
-        },
         data: students,
       };
     } catch (error) {

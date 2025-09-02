@@ -12,6 +12,7 @@ import {
   IsMongoId,
   Matches,
   ValidateNested,
+  IsPhoneNumber,
 } from 'class-validator';
 
 import { Gender, Divisions } from 'src/schema/student.schema';
@@ -101,6 +102,7 @@ export class CreateStudentDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsPhoneNumber()
   contactNumber: string;
 
   @IsString()

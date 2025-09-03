@@ -8,6 +8,7 @@ import {
   UseGuards,
   Controller,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UserResponse, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,16 +30,30 @@ export class UserController {
   }
 
   @Get()
+  @Roles(UserRole.SUPER_ADMIN)
   findAll() {
     return this.userService.findAll();
   }
 
+  @Get('/me')
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.SUB_ADMIN,
+    UserRole.TEACHER,
+  )
+  async getMe(@Req() req: Request) {
+    return await this.userService.findMe(req);
+  }
+
   @Get('/teachers/:schoolId')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.SUB_ADMIN)
   async findSchoolTeachers(@Param('schoolId') schoolId: string) {
     return await this.userService.findSchoolTeachers(schoolId);
   }
 
   @Get(':id')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async findOne(@Param('id') id: string) {
     return await this.userService.findOne(id);
   }

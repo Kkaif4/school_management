@@ -17,7 +17,7 @@ export class CreateCertificateDto {
   })
   @IsNotEmpty()
   @IsString()
-  htmlTemplate: string;
+  templateCode: string;
 
   @ApiProperty({
     example: '64c9a6b9e0f1a2b3c4d5e6f7',

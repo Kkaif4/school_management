@@ -102,6 +102,8 @@ export class StudentService {
         throw new BadRequestException(duplicateCheck.message);
       }
       const student = await this.studentModel.create(createStudentDto);
+      school.totalStudents += 1;
+      await school.save();
       return {
         success: true,
         message: 'Student created successfully',
@@ -230,6 +232,8 @@ export class StudentService {
             const student = new this.studentModel(studentData);
 
             await student.save().then((saved) => results.push(saved));
+            school.totalStudents += results.length;
+            await school.save();
           } catch (err) {
             errors.push({
               row,
@@ -350,6 +354,7 @@ export class StudentService {
     order: 'asc' | 'desc' = 'desc',
     search?: string,
   ): Promise<StudentArrayResponse> {
+    console.log('schoolId', schoolId);
     try {
       if (!Types.ObjectId.isValid(schoolId)) {
         throw new BadRequestException('Invalid school ID');

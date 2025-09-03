@@ -61,6 +61,23 @@ export class UserService {
     return users;
   }
 
+  async findMe(req: Request): Promise<UserResponseDto> {
+    const userId = (req as any).user.id;
+    if (!isValidObjectId(userId)) {
+      throw new NotFoundException('Invalid id');
+    }
+    const user = await this.userModel.findById({ _id: userId });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const response = {
+      success: true,
+      message: 'User found successfully',
+      data: user,
+    };
+    return response;
+  }
+
   async findAllTeachers(schoolId: string) {
     try {
       const teachers = await this.userModel.find({

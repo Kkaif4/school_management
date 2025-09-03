@@ -20,6 +20,12 @@ export class School {
   @Prop({ default: 'not available' })
   contactNumber: string;
 
+  @Prop({ default: 0 })
+  totalStudents: number;
+
+  @Prop({ default: 0 })
+  totalTeachers: number;
+
   @Prop({ default: true })
   isActive: boolean;
 }

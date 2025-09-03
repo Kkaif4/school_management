@@ -7,7 +7,7 @@ export class Certificate extends Document {
   name: string;
 
   @Prop({ required: true })
-  htmlTemplate: string;
+  templateCode: string;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'School', index: true })
   schoolId: Types.ObjectId;

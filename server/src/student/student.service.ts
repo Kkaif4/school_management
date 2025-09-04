@@ -237,8 +237,6 @@ export class StudentService {
             const student = new this.studentModel(studentData);
 
             await student.save().then((saved) => results.push(saved));
-            school.totalStudents += results.length;
-            await school.save();
           } catch (err) {
             errors.push({
               row,
@@ -278,6 +276,8 @@ export class StudentService {
               missingFields: missingFieldErrors,
             },
           });
+          school.totalStudents += results.length;
+          await school.save();
         } catch (err) {
           reject(new InternalServerErrorException(err.message));
         }
@@ -440,6 +440,11 @@ export class StudentService {
       throw new NotFoundException('Student not found');
     }
     const student = await this.studentModel.findByIdAndDelete(id);
+    const school = await this.schoolModel.findById({ _id: student?.schoolId });
+    if (school) {
+      school.totalStudents -= 1;
+      await school.save();
+    }
     if (!student) {
       throw new NotFoundException('Student not found');
     }
@@ -453,6 +458,8 @@ export class StudentService {
       throw new NotFoundException('School not found');
     }
     const students = await this.studentModel.deleteMany({ schoolId });
+    school.totalStudents = 0;
+    await school.save();
     return students;
   }
 }

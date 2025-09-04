@@ -353,7 +353,6 @@ export class StudentService {
     order: 'asc' | 'desc' = 'desc',
     search?: string,
   ): Promise<StudentArrayResponse> {
-    console.log('schoolId', schoolId);
     try {
       if (!Types.ObjectId.isValid(schoolId)) {
         throw new BadRequestException('Invalid school ID');
@@ -374,7 +373,6 @@ export class StudentService {
       if (!students || students.length === 0) {
         throw new NotFoundException('No students found for this school');
       }
-      console.log('total:', total);
       return {
         success: true,
         message: 'Students found successfully',

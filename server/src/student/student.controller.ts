@@ -28,7 +28,6 @@ export class StudentController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
   async create(@Body() createStudentDto: CreateStudentDto) {
-    console.log('creating student with data:', createStudentDto);
     return await this.studentService.create(createStudentDto);
   }
 
@@ -39,9 +38,7 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
-    console.log('Uploading CSV file for schoolId:', schoolId);
     const res = await this.studentService.processCSVFile(file, schoolId);
-    console.log('Bulk upload result:', res);
     return res;
   }
 
@@ -65,7 +62,6 @@ export class StudentController {
     @Query('sort') sort?: string,
     @Query('order') order?: 'asc' | 'desc',
   ): Promise<StudentArrayResponse> {
-    console.log('got query params:', schoolId, { page, limit, sort, order });
     return this.studentService.findBySchool(schoolId, page, limit, sort, order);
   }
 

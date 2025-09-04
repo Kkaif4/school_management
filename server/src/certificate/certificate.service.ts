@@ -72,7 +72,11 @@ export class CertificateService {
         contactNumber: student.contactNumber,
       });
 
-      return newCertificate;
+      return {
+        success: true,
+        message: `${certificate.name} generated for ${student.firstName} ${student.lastName}`,
+        data: newCertificate,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

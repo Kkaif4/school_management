@@ -62,17 +62,14 @@ export class CertificateController {
     @Param() data: { studentId: string; certificateId: string },
     @Req() req: Request,
   ) {
-    console.log('Request user:', req['user']);
     const result = await this.certificateService.generateCertificate(data);
 
     try {
-      // Extract user data from the request
       const user = req['user'];
       if (!user?.id) {
         console.error('Missing user data in request');
         return result;
       }
-      console.log('message:', result.message);
       const logData: CreateLogDto = {
         userId: user.id.toString(),
         studentId: data.studentId,
@@ -83,7 +80,6 @@ export class CertificateController {
       };
 
       if (result) {
-        console.log('Creating log entry:', logData);
         await this.logService.createLog(logData);
       }
     } catch (err) {

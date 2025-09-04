@@ -12,7 +12,6 @@ export class LogService {
   ) {}
 
   async createLog(logData: CreateLogDto): Promise<Log | null> {
-    console.log('Creating log with data:', logData);
     try {
       // Convert string IDs to ObjectIds
       const formattedLogData = {
@@ -23,7 +22,6 @@ export class LogService {
       };
 
       const log = await this.logModel.create(formattedLogData);
-      console.log('Log created successfully:', log);
       return log;
     } catch (error) {
       console.error('Error creating log:', error.message);

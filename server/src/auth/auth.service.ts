@@ -41,8 +41,10 @@ export class AuthService {
         email: user.email,
         role: user.role,
         name: user.name,
+        schoolId: user.schoolId,
       },
     };
+    console.log(response);
 
     return response;
   }

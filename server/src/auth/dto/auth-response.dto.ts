@@ -30,5 +30,6 @@ export class AuthResponseDto {
     email: string;
     role: string;
     name: string;
+    schoolId?: Types.ObjectId;
   };
 }

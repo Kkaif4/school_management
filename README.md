@@ -1,1 +1,1 @@
-# school-management
+# Bright-side school-management

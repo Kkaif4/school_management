@@ -1,19 +1,5 @@
-'use client';
-
-import {
-  X,
-  User,
-  Phone,
-  Book,
-  Users,
-  Printer,
-  Edit,
-  Trash,
-  IdCard,
-  FileText,
-} from 'lucide-react';
+import { X, User, FileText } from 'lucide-react';
 import { Student } from '@/types/student';
-import api from '@/lib/api';
 import StudentDetailFooter from './StudentDetailFooter';
 
 interface StudentDetailsProps {
@@ -29,132 +15,107 @@ export default function StudentDetails({
 }: StudentDetailsProps) {
   if (!isOpen) return null;
 
-  const formatDate = (dateString: string | Date) => {
+  const formatDate = (dateString?: string | Date) => {
+    if (!dateString) return '—';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    return isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
   };
 
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/10 backdrop-blur-xs z-40"
+        className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40" // a slightly stronger blur looks nice
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col">
+        <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 text-white flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <User className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold">
-                      {student.firstName}{' '}
-                      {student.middleName ? `${student.middleName} ` : ''}
-                      {student.lastName}
-                    </h2>
-                    <p className="text-indigo-100">Student Details</p>
-                  </div>
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white flex-shrink-0 rounded-t-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {' '}
+                {/* Increased gap slightly */}
+                <div className="bg-white/20 p-1.5 rounded-lg">
+                  <User className="h-5 w-5" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                    <X className="h-5 w-5" />
-                  </button>
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    {student.firstName}{' '}
+                    {student.middleName ? `${student.middleName} ` : ''}
+                    {student.lastName}
+                  </h2>
+                  <p className="text-indigo-100 text-sm">Student Details</p>
                 </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Main Content Body */}
+            <div className="p-5 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {' '}
+              {/* Changed to lg: and increased gap */}
+              {/* This div wraps all student info sections */}
+              <div className="flex flex-col gap-5">
+                {/* Student Information */}
+                <Section
+                  title="Student Information"
+                  icon={<User className="h-5 w-5 text-indigo-600" />}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                    <Info label="Student ID" value={student.studentId} />
+                    <Info
+                      label="Register Number"
+                      value={student.registrationNumber}
+                    />
+                    <Info label="First Name" value={student.firstName} />
+                    {student.middleName && (
+                      <Info label="Middle Name" value={student.middleName} />
+                    )}
+                    <Info label="Last Name" value={student.lastName} />
+                    <Info
+                      label="Date of Birth"
+                      value={formatDate(student.dateOfBirth)}
+                    />
+                    <Info label="Gender" value={student.gender} />
+                    <Info label="Grade" value={student.grade} />
+                    <Info label="Division" value={student.division} />
+                    <Info label="Roll Number" value={student.rollNumber} />
+                  </div>
+                </Section>
+              </div>
+              {/* This div wraps additional info and other potential right-side content */}
+              <div className="flex flex-col gap-5">
+                {/* Custom Fields */}
+                {student.customFields &&
+                  Object.keys(student.customFields).length > 0 && (
+                    <Section
+                      title="Additional Information"
+                      icon={<FileText className="h-5 w-5 text-gray-600" />}>
+                      {/* FIX 2: More columns for additional info to use space better */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                        {Object.entries(student.customFields).map(
+                          ([key, value], idx) => (
+                            <Info key={idx} label={key} value={value} />
+                          )
+                        )}
+                      </div>
+                    </Section>
+                  )}
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Personal Information */}
-              <Section
-                title="Personal Information"
-                icon={<User className="h-5 w-5 text-indigo-600" />}>
-                <Info label="First Name" value={student.firstName} />
-                {student.middleName && (
-                  <Info label="Middle Name" value={student.middleName} />
-                )}
-                <Info label="Last Name" value={student.lastName} />
-                <Info
-                  label="Date of Birth"
-                  value={formatDate(student.dateOfBirth)}
-                />
-                <Info label="Birth Place" value={student.birthPlace} />
-                <Info label="Gender" value={student.gender} />
-                <Info label="Nationality" value={student.nationality} />
-              </Section>
-
-              {/* Academic Information */}
-              <Section
-                title="Academic Information"
-                icon={<Book className="h-5 w-5 text-purple-600" />}>
-                <Info label="Student ID" value={student.studentId} />
-                <Info label="Register Number" value={student.registerNumber} />
-                <Info label="Roll Number" value={student.rollNumber} />
-                <Info label="Grade" value={`Grade ${student.grade}`} />
-                <Info label="Division" value={`Division ${student.division}`} />
-                <Info
-                  label="Admission Date"
-                  value={formatDate(student.admissionDate)}
-                />
-                {student.previousSchoolName && (
-                  <Info
-                    label="Previous School"
-                    value={student.previousSchoolName}
-                  />
-                )}
-              </Section>
-
-              {/* Family Information */}
-              <Section
-                title="Family Information"
-                icon={<Users className="h-5 w-5 text-green-600" />}>
-                <Info label="Father's Name" value={student.fatherName} />
-                <Info label="Mother's Name" value={student.motherName} />
-              </Section>
-
-              {/* Identification & Religion */}
-              <Section
-                title="Identity & Background"
-                icon={<IdCard className="h-5 w-5 text-orange-600" />}>
-                <Info label="Aadhaar" value={student.adhaar} />
-                <Info label="Caste" value={student.cast} />
-                <Info label="Religion" value={student.religion} />
-              </Section>
-
-              {/* Contact Information */}
-              <Section
-                title="Contact Information"
-                icon={<Phone className="h-5 w-5 text-blue-600" />}>
-                <Info label="Phone" value={student.contactNumber} />
-                <Info label="Address" value={student.address} multiline />
-              </Section>
-
-              {/* Custom Fields */}
-              {student.customFields && student.customFields.length > 0 && (
-                <Section
-                  title="Additional Information"
-                  icon={<FileText className="h-5 w-5 text-gray-600" />}>
-                  {student.customFields.map((field, idx) => (
-                    <Info key={idx} label={field.key} value={field.value} />
-                  ))}
-                </Section>
-              )}
-            </div>
-
-            {/* Footer actions */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-white flex justify-end gap-3 flex-shrink-0">
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 flex justify-end flex-shrink-0 rounded-b-xl">
               <StudentDetailFooter student={student} />
             </div>
           </div>
@@ -164,43 +125,34 @@ export default function StudentDetails({
   );
 }
 
-/* ---------- Helpers ---------- */
 function Section({
   title,
   icon,
   children,
+  className,
 }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
+  // Removed space-y from here, grid gap on the child is better
   return (
-    <div className="bg-gray-50 rounded-xl p-5">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-        {icon}
-        {title}
+    <div className={`bg-gray-50/70 rounded-xl p-4 sm:p-5 ${className || ''}`}>
+      <h3 className="text-md sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        {icon} {title}
       </h3>
-      <div className="space-y-3">{children}</div>
+      {children}
     </div>
   );
 }
 
-function Info({
-  label,
-  value,
-  multiline,
-}: {
-  label: string;
-  value: any;
-  multiline?: boolean;
-}) {
+function Info({ label, value }: { label: string; value: any }) {
+  // FIX 1: Changed layout from justify-between to a more controlled flex layout
   return (
-    <div className="flex justify-between items-start gap-4">
-      <span className="text-gray-600">{label}:</span>
-      <span
-        className={`font-medium text-gray-900 ${
-          multiline ? 'text-right max-w-xs' : ''
-        }`}>
+    <div className="flex items-start text-sm">
+      <span className="w-2/5 text-gray-500">{label}:</span>
+      <span className="w-3/5 font-medium text-gray-800 break-words">
         {value || '—'}
       </span>
     </div>

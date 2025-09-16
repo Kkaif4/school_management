@@ -2,7 +2,7 @@ import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
 import { LogService } from './log.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/decorator/roles.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/schema/user.schema';
 
 @Controller('logs')

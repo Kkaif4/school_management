@@ -1,29 +1,26 @@
-'use client';
-
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useSchoolStore } from '@/stores/schoolStore';
 import { Student } from '@/types/student';
-import api, { studentAPI } from '@/lib/api';
+import { studentAPI } from '@/lib/api';
 import StudentsHeader from './StudentsHeader';
 import StudentsFilters from './StudentsFilters';
 import StudentsList from './StudentsList';
 import EmptyState from './EmptyState';
 import AddStudentModal from './AddStudentModal';
 import StudentDetails from './StudentsDetails';
+import AddStudentForm from './StudentForm';
 
 interface StudentsProps {
   schoolId: string;
-  isTeacherView?: boolean;
 }
 
-export default function Students({
-  schoolId,
-  isTeacherView = false,
-}: StudentsProps) {
+export default function Students({ schoolId }: StudentsProps) {
+  const { school } = useSchoolStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [Loading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedDivision, setSelectedDivision] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -32,25 +29,19 @@ export default function Students({
 
   const fetchStudents = useCallback(async () => {
     setError(null);
-    setIsLoading(true);
+    setLoading(true);
     try {
       const response = await studentAPI.getStudent(schoolId);
-      console.log('Fetched students');
       setStudents(response.data.data);
     } catch (err: any) {
       if (err.response?.status === 404) {
         setStudents([]);
       } else {
-        console.log('Error fetching students:', err.message);
         setError(err.message || 'Failed to fetch students');
       }
     }
-    setIsLoading(false);
+    setLoading(false);
   }, [schoolId]);
-
-  const onRefresh = () => {
-    fetchStudents();
-  };
 
   useEffect(() => {
     fetchStudents();
@@ -90,12 +81,20 @@ export default function Students({
     setSelectedStudent(null);
   };
 
-  // Trigger file input on "Upload CSV"
   const handleUploadCSVClick = () => {
     fileInputRef.current?.click();
   };
 
-  // Handle CSV file selection
+  const onStudentDelete = async (studentId: string) => {
+    try {
+      await studentAPI.deleteStudent(studentId);
+      alert('Student deleted successfully');
+      fetchStudents();
+    } catch (err: any) {
+      console.log(err);
+      alert('Failed to delete student.');
+    }
+  };
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -113,6 +112,7 @@ export default function Students({
           response.data.summary.saved || 'Some'
         } students uploaded successfully!`
       );
+      fetchStudents(); // refresh list
     } catch (error: any) {
       alert(
         error.response?.data?.message ||
@@ -123,9 +123,9 @@ export default function Students({
     event.target.value = '';
   };
 
-  if (Loading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-64">
+      <div className="flex justify-center items-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -133,8 +133,8 @@ export default function Students({
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="text-red-500 bg-red-50 p-4 rounded-lg border border-red-200">
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="text-red-500 bg-red-50 p-4 rounded-lg border border-red-200 max-w-md text-center">
           <p className="font-medium">Error loading students</p>
           <p className="text-sm mt-1">{error}</p>
         </div>
@@ -143,12 +143,14 @@ export default function Students({
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
+      {/* Header */}
       <StudentsHeader
         onAddStudent={() => setIsFormOpen(true)}
         onUploadCSV={handleUploadCSVClick}
       />
 
+      {/* Hidden CSV input */}
       <input
         type="file"
         accept=".csv"
@@ -157,41 +159,56 @@ export default function Students({
         onChange={handleFileChange}
       />
 
-      <StudentsFilters
-        searchTerm={searchTerm}
-        selectedGrade={selectedGrade}
-        selectedDivision={selectedDivision}
-        onSearchChange={setSearchTerm}
-        onGradeChange={setSelectedGrade}
-        onDivisionChange={setSelectedDivision}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Filters */}
+      <div className="mt-4 sm:mt-6">
+        <StudentsFilters
+          searchTerm={searchTerm}
+          selectedGrade={selectedGrade}
+          selectedDivision={selectedDivision}
+          onSearchChange={setSearchTerm}
+          onGradeChange={setSelectedGrade}
+          onDivisionChange={setSelectedDivision}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
 
-      {filteredStudents.length > 0 ? (
-        <>
+      {/* Student List or Empty State */}
+      <div className="mt-4 sm:mt-6">
+        {filteredStudents.length > 0 ? (
           <StudentsList
             students={students}
             filteredStudents={filteredStudents}
             onStudentClick={handleStudentClick}
           />
-        </>
-      ) : (
-        <EmptyState
-          hasStudents={students.length > 0}
-          onAddStudent={() => setIsFormOpen(true)}
-        />
-      )}
+        ) : (
+          <EmptyState
+            hasStudents={students.length > 0}
+            onAddStudent={() => setIsFormOpen(true)}
+          />
+        )}
+      </div>
 
-      <AddStudentModal
-        isOpen={isFormOpen}
-        schoolId={schoolId}
-        onClose={() => setIsFormOpen(false)}
-        onSuccess={() => {
-          setIsFormOpen(false);
-          fetchStudents();
-        }}
-        onCancel={() => setIsFormOpen(false)}
-      />
+      {/* Add Student Modal */}
+      {isFormOpen && school && (
+        <AddStudentModal
+          isOpen={isFormOpen}
+          schoolId={school._id}
+          onSuccess={fetchStudents}
+          onCancel={() => setIsFormOpen(false)}
+          onClose={() => setIsFormOpen(false)}>
+          <>
+            <AddStudentForm
+              schoolId={school._id}
+              customField={school.studentFields || []}
+              onSuccess={() => {
+                fetchStudents();
+                setIsFormOpen(false);
+              }}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </>
+        </AddStudentModal>
+      )}
 
       {/* Student Details Modal */}
       {selectedStudent && (

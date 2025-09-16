@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+export type CertificateDocument = Certificate & Document;
 @Schema({ timestamps: true })
 export class Certificate extends Document {
   @Prop({ required: true })

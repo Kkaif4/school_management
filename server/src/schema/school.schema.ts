@@ -3,6 +3,21 @@ import mongoose, { Document, Types } from 'mongoose';
 
 export type SchoolDocument = School & Document;
 
+@Schema({ _id: false })
+class FieldDefinition {
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  type: string;
+
+  @Prop({ default: false })
+  required: boolean;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed })
+  defaultValue?: any;
+}
+
 @Schema({ timestamps: true })
 export class School {
   @Prop({ required: true })
@@ -14,10 +29,10 @@ export class School {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   adminId: Types.ObjectId;
 
-  @Prop({ default: 'not available' })
+  @Prop({ default: 'N/A' })
   address: string;
 
-  @Prop({ default: 'not available' })
+  @Prop({ default: 'N/A' })
   contactNumber: string;
 
   @Prop({ default: 0 })
@@ -25,6 +40,9 @@ export class School {
 
   @Prop({ default: 0 })
   totalTeachers: number;
+
+  @Prop({ type: [FieldDefinition], default: [] })
+  studentFields: FieldDefinition[];
 
   @Prop({ default: true })
   isActive: boolean;

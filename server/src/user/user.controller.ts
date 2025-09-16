@@ -13,7 +13,7 @@ import {
 import { UserResponse, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Roles } from 'src/decorator/roles.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/schema/user.schema';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { AuthGuard } from 'src/auth/guard/auth.guard';

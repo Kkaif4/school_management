@@ -1,36 +1,22 @@
 import {
-  Param,
-  UseGuards,
-  Controller,
+  Req,
   Get,
   Post,
   Body,
-  Req,
+  Param,
+  UseGuards,
+  Controller,
 } from '@nestjs/common';
-import { CertificateService } from './certificate.service';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/schema/user.schema';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/decorator/roles.decorator';
-import { UserRole } from 'src/schema/user.schema';
-import { Divisions, Gender } from 'src/schema/student.schema';
 import { LogService } from 'src/log/log.service';
-import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { CreateLogDto } from 'src/log/dto/create-log.dto';
 import { StudentService } from 'src/student/student.service';
-
-export interface StudentData {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  fatherName: string;
-  motherName: string;
-  dateOfBirth: string;
-  gender: Gender;
-  rollNumber: string;
-  grade: number;
-  division: Divisions;
-  contactNumber: string;
-}
+import { Divisions, Gender } from 'src/schema/student.schema';
+import { CertificateService } from './certificate.service';
+import { CreateCertificateDto } from './dto/create-certificate.dto';
 
 @Controller('certificate')
 @UseGuards(AuthGuard, RolesGuard)
@@ -73,6 +59,7 @@ export class CertificateController {
       const logData: CreateLogDto = {
         userId: user.id.toString(),
         studentId: data.studentId,
+        schoolId: user.schoolId.toString(),
         documentType: 'certificate',
         documentId: data.certificateId,
         message: `${result.message} by ${user.name || 'User'}`,

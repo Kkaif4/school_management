@@ -9,7 +9,7 @@ import {
 import { GraduationCap } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
-import { useModalStore } from '@/lib/modalStore';
+import { useModalStore } from '@/stores/modalStore';
 
 interface AuthModalProps {
   type: 'login' | 'signup';

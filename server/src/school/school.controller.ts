@@ -14,7 +14,7 @@ import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { Roles } from '../decorator/roles.decorator';
+import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../schema/user.schema';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { SchoolResponseDto } from './dto/school-response.dto';

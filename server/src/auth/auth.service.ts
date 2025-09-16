@@ -44,7 +44,6 @@ export class AuthService {
         schoolId: user.schoolId,
       },
     };
-    console.log(response);
 
     return response;
   }

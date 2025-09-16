@@ -1,37 +1,24 @@
 import {
-  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 
+import csv from 'csv-parser';
+import { School } from 'src/schema/school.schema';
+import { Student } from '../schema/student.schema';
+import { Readable } from 'stream';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
-  Divisions,
-  Gender,
-  Student,
-  StudentDocument,
-} from '../schema/student.schema';
-import { StudentResponseDto } from './dto/student-response.dto';
-import { School } from 'src/schema/school.schema';
-import { Readable } from 'stream';
-import csv from 'csv-parser';
+  CSVError,
+  StudentResponseDto,
+  CSVProcessingResult,
+} from './dto/student-response.dto';
 import { CreateStudentDto } from './dto/create-student.dto';
-import { isEmpty } from 'class-validator';
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface StudentArrayResponse {
-  success: boolean;
-  message: string;
-  total?: number;
-  data: Student[];
-}
+import { StudentArrayResponse } from './dto/student-response.dto';
+import { Log } from 'src/schema/log.schema';
 
 function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max);
@@ -50,6 +37,8 @@ export class StudentService {
     private studentModel: Model<Student>,
     @InjectModel(School.name)
     private schoolModel: Model<School>,
+    @InjectModel(Log.name)
+    private logModel: Model<Log>,
   ) {}
 
   private async checkDuplicateStudent(
@@ -69,7 +58,7 @@ export class StudentService {
         Object.assign(query, { _id: { $ne: excludeStudentId } });
       }
 
-      const existingStudent = await this.studentModel.findOne(query).lean();
+      const existingStudent = await this.studentModel.findOne(query);
 
       if (existingStudent) {
         return {
@@ -92,8 +81,9 @@ export class StudentService {
     createStudentDto: CreateStudentDto,
   ): Promise<StudentResponseDto> {
     try {
+      const { schoolId, customFields, ...rest } = createStudentDto;
       const school = await this.schoolModel.findById({
-        _id: createStudentDto.schoolId,
+        _id: schoolId,
       });
       if (!school) {
         throw new NotFoundException('School not found');
@@ -106,9 +96,15 @@ export class StudentService {
       if (duplicateCheck.isDuplicate) {
         throw new BadRequestException(duplicateCheck.message);
       }
+
+      if (school.studentFields.length > 0) {
+        this.validateCustomFields(school.studentFields, customFields);
+      }
+
       const student = await this.studentModel.create(createStudentDto);
       school.totalStudents += 1;
       await school.save();
+      console.log('done');
       return {
         success: true,
         message: 'Student created successfully',
@@ -128,72 +124,41 @@ export class StudentService {
     }
   }
 
-  async processCSVFile(file: Express.Multer.File, schoolId: string) {
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
-    }
-
+  async processCSVFile(
+    file: Express.Multer.File,
+    schoolId: string,
+  ): Promise<CSVProcessingResult> {
+    if (!file) throw new BadRequestException('No file uploaded');
+    if (!schoolId) throw new BadRequestException('No school ID provided');
     const school = await this.schoolModel.findById(schoolId);
-    if (!school) {
-      throw new NotFoundException('School not found');
-    }
+    if (!school) throw new NotFoundException('School not found');
 
     const results: any[] = [];
-    const errors: any[] = [];
+    const errors: CSVError[] = [];
     const savePromises: Promise<any>[] = [];
 
-    return new Promise<{
-      success: boolean;
-      message: string;
-      summary: {
-        total: number;
-        saved: number;
-        failed: number;
-        duplicates: number;
-        validationFailed: number;
-        missingFields: number;
-      };
-      errors: {
-        duplicates: any[];
-        validation: any[];
-        missingFields: any[];
-      };
-    }>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const stream = Readable.from(file.buffer).pipe(csv());
 
       stream.on('data', (row) => {
         const task = (async () => {
           try {
-            if (
-              !row.studentId ||
-              !row.registerNumber ||
-              !row.firstName ||
-              !row.lastName ||
-              !row.dateOfBirth ||
-              !row.birthPlace ||
-              !row.gender ||
-              !row.rollNumber ||
-              !row.fatherName ||
-              !row.motherName ||
-              !row.adhaar ||
-              !row.cast ||
-              !row.religion ||
-              !row.nationality ||
-              !row.grade ||
-              !row.division ||
-              !row.contactNumber ||
-              !row.address ||
-              !row.admissionDate
-            ) {
-              errors.push({ row, error: 'Missing required fields' });
-              return;
-            }
+            const {
+              firstName,
+              middleName,
+              lastName,
+              dateOfBirth,
+              gender,
+              rollNumber,
+              grade,
+              division,
+              ...customFieldParts
+            } = row;
 
-            // Duplicate check
             const duplicateCheck = await this.checkDuplicateStudent(
               schoolId,
-              row.grade,
-              row.rollNumber,
+              grade,
+              rollNumber,
             );
 
             if (duplicateCheck.isDuplicate) {
@@ -205,44 +170,28 @@ export class StudentService {
               return;
             }
 
-            // Build student object
+            const customFields = new Map(Object.entries(customFieldParts));
+            if (school.studentFields) {
+              this.validateCustomFields(school.studentFields, customFields);
+            }
+
             const studentData = {
-              studentId: row.studentId,
-              registerNumber: row.registerNumber,
-              firstName: row.firstName,
-              middleName: row.middleName || null,
-              lastName: row.lastName,
-              dateOfBirth: new Date(row.dateOfBirth).toISOString(),
-              birthPlace: row.birthPlace,
-              gender: row.gender.toLowerCase() as Gender,
-              rollNumber: Number(row.rollNumber),
-              fatherName: row.fatherName,
-              motherName: row.motherName,
-              adhaar: row.adhaar,
-              cast: row.cast,
-              religion: row.religion,
-              nationality: row.nationality,
-              grade: Number(row.grade),
-              division: (row.division || Divisions.A) as Divisions,
-              contactNumber: row.contactNumber,
-              address: row.address,
-              previousSchoolName: row.previousSchoolName || null,
-              admissionDate: new Date(row.admissionDate).toISOString(),
-              customFields: !isEmpty(row.customFields)
-                ? JSON.parse(row.customFields)
-                : [],
+              firstName,
+              middleName: middleName || null,
+              lastName,
+              dateOfBirth: new Date(dateOfBirth).toISOString(),
+              gender: gender.toLowerCase(),
+              rollNumber: Number(rollNumber),
+              grade: Number(grade),
+              division: division || 'A',
               schoolId,
+              customFields,
             };
 
             const student = new this.studentModel(studentData);
-
             await student.save().then((saved) => results.push(saved));
           } catch (err) {
-            errors.push({
-              row,
-              error: err.message,
-              type: 'VALIDATION',
-            });
+            errors.push({ row, error: err.message, type: 'VALIDATION' });
           }
         })();
 
@@ -250,37 +199,31 @@ export class StudentService {
       });
 
       stream.on('end', async () => {
-        try {
-          await Promise.allSettled(savePromises);
+        await Promise.allSettled(savePromises);
 
-          const duplicateErrors = errors.filter((e) => e.type === 'DUPLICATE');
-          const validationErrors = errors.filter(
-            (e) => e.type === 'VALIDATION',
-          );
-          const missingFieldErrors = errors.filter((e) => !e.type);
+        const response: CSVProcessingResult = {
+          success: true,
+          message: 'CSV processing completed',
+          summary: {
+            total: results.length + errors.length,
+            saved: results.length,
+            failed: errors.length,
+            duplicates: errors.filter((e) => e.type === 'DUPLICATE').length,
+            validationFailed: errors.filter((e) => e.type === 'VALIDATION')
+              .length,
+          },
+          errors,
+          results,
+        };
 
-          resolve({
-            success: true,
-            message: 'CSV processing completed',
-            summary: {
-              total: results.length + errors.length,
-              saved: results.length,
-              failed: errors.length,
-              duplicates: duplicateErrors.length,
-              validationFailed: validationErrors.length,
-              missingFields: missingFieldErrors.length,
-            },
-            errors: {
-              duplicates: duplicateErrors,
-              validation: validationErrors,
-              missingFields: missingFieldErrors,
-            },
-          });
-          school.totalStudents += results.length;
-          await school.save();
-        } catch (err) {
-          reject(new InternalServerErrorException(err.message));
+        if (results.length === 0 && errors.length > 0) {
+          return reject(new BadRequestException(response));
         }
+
+        resolve(response);
+
+        school.totalStudents += results.length;
+        await school.save();
       });
 
       stream.on('error', (err) => {
@@ -314,16 +257,11 @@ export class StudentService {
           { grade: new RegExp(search, 'i') },
         ]);
       }
-      const [students, total] = await Promise.all([
-        query
-          .sort({ [sort]: order })
-          .skip(skip)
-          .limit(pageSize)
-          .select('-__v')
-          .lean()
-          .exec(),
-        query.clone().countDocuments(),
-      ]);
+      const students = await query
+        .sort({ [sort]: order })
+        .skip(skip)
+        .limit(pageSize)
+        .select('-__v');
 
       if (!students || students.length === 0) {
         throw new NotFoundException('No students found');
@@ -458,8 +396,141 @@ export class StudentService {
       throw new NotFoundException('School not found');
     }
     const students = await this.studentModel.deleteMany({ schoolId });
+    const updateLogs = await this.logModel.deleteMany({});
     school.totalStudents = 0;
     await school.save();
     return students;
+  }
+
+  private validateCustomFields(
+    fieldDefinitions: { name: string; type: string; required: boolean }[],
+    customFields: Map<string, any> | Record<string, any>,
+  ) {
+    const definedFieldNames = new Set(
+      fieldDefinitions.map((field) => field.name),
+    );
+
+    const providedFieldNames = new Set(
+      customFields instanceof Map
+        ? [...customFields.keys()]
+        : Object.keys(customFields),
+    );
+
+    if (!definedFieldNames && !providedFieldNames) {
+      return;
+    }
+
+    if (!providedFieldNames.size) {
+      const requiredFields = fieldDefinitions
+        .filter((field) => field.required)
+        .map((field) => field.name);
+      console.log({ requiredFields });
+      throw new BadRequestException(
+        `No fields provided. Required fields: ${requiredFields.join(', ')}`,
+      );
+    }
+
+    const invalidFields = [...providedFieldNames].filter(
+      (fieldName) => !definedFieldNames.has(fieldName),
+    );
+    if (invalidFields.length > 0) {
+      throw new BadRequestException(
+        `Invalid custom fields: ${invalidFields.join(
+          ', ',
+        )}. Allowed fields: ${[...definedFieldNames].join(', ')}`,
+      );
+    }
+
+    for (const field of fieldDefinitions) {
+      if (field.required) {
+        const hasField =
+          customFields instanceof Map
+            ? customFields.has(field.name)
+            : Object.prototype.hasOwnProperty.call(customFields, field.name);
+
+        if (!hasField) {
+          throw new BadRequestException(
+            `Missing required field: ${field.name}`,
+          );
+        }
+      }
+    }
+
+    const entries =
+      customFields instanceof Map
+        ? [...customFields.entries()]
+        : Object.entries(customFields);
+
+    for (const [key, value] of entries) {
+      const fieldDef = fieldDefinitions.find((f) => f.name === key);
+      if (!fieldDef) continue;
+
+      switch (fieldDef.type) {
+        case 'string':
+          if (typeof value !== 'string') {
+            throw new BadRequestException(`Field ${key} must be a string`);
+          }
+          break;
+
+        case 'number':
+          if (typeof value === 'string') {
+            const parsed = Number(value);
+            if (isNaN(parsed)) {
+              throw new BadRequestException(
+                `Field ${key} must be a valid number`,
+              );
+            }
+            customFields instanceof Map
+              ? customFields.set(key, parsed)
+              : (customFields[key] = parsed);
+          } else if (typeof value === 'number') {
+            if (isNaN(value)) {
+              throw new BadRequestException(
+                `Field ${key} must be a valid number`,
+              );
+            }
+          } else {
+            throw new BadRequestException(`Field ${key} must be a number`);
+          }
+          break;
+
+        case 'date':
+          if (!(value instanceof Date) && isNaN(Date.parse(value))) {
+            throw new BadRequestException(`Field ${key} must be a valid date`);
+          }
+          break;
+
+        case 'boolean':
+          if (typeof value === 'boolean') {
+            break;
+          }
+          if (typeof value === 'string') {
+            const lowered = value.toLowerCase();
+            if (lowered === 'true') {
+              customFields instanceof Map
+                ? customFields.set(key, true)
+                : (customFields[key] = true);
+            } else if (lowered === 'false') {
+              customFields instanceof Map
+                ? customFields.set(key, false)
+                : (customFields[key] = false);
+            } else {
+              throw new BadRequestException(
+                `Field ${key} must be a boolean (true/false)`,
+              );
+            }
+          } else {
+            throw new BadRequestException(
+              `Field ${key} must be a boolean (true/false)`,
+            );
+          }
+          break;
+
+        default:
+          throw new BadRequestException(
+            `Unsupported field type for ${key}: ${fieldDef.type}`,
+          );
+      }
+    }
   }
 }

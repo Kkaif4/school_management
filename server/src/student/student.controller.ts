@@ -2,6 +2,7 @@ import {
   Get,
   Post,
   Body,
+  Query,
   Patch,
   Param,
   Delete,
@@ -9,16 +10,16 @@ import {
   Controller,
   UploadedFile,
   UseInterceptors,
-  Query,
 } from '@nestjs/common';
-import { StudentArrayResponse, StudentService } from './student.service';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../schema/user.schema';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { Roles } from '../decorator/roles.decorator';
-import { UserRole } from '../schema/user.schema';
+import { StudentService } from './student.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { StudentResponseDto } from './dto/student-response.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { StudentArrayResponse } from './dto/student-response.dto';
 
 @Controller('student')
 @UseGuards(AuthGuard, RolesGuard)
@@ -38,7 +39,9 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body('schoolId') schoolId: string,
   ) {
+    console.log({ schoolId }, 'calling processCSVFile');
     const res = await this.studentService.processCSVFile(file, schoolId);
+    console.log({ res });
     return res;
   }
 

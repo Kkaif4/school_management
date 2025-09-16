@@ -9,7 +9,7 @@ import {
 
 import { GraduationCap } from 'lucide-react';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { useModalStore } from '@/lib/modalStore';
+import { useModalStore } from '@/stores/modalStore';
 import { features } from '@/assets/Features';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

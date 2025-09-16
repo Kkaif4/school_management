@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/Sidebar';
-import HomeContent from '@/components/HomeContent';
+import HomeContent from '@/components/school/HomeContent';
 import { School } from '@/types/school';
 import { schoolAPI } from '@/lib/api';
 import Students from '@/components/student/Students';

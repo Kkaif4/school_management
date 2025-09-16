@@ -1,7 +1,7 @@
 import { School } from '@/types/school';
 import SchoolHeader from './SchoolHeader';
 import SchoolInfo from './SchoolInfo';
-import StatsOverview from './StatsOverview';
+import StatsOverview from '../StatsOverview';
 
 interface HomeContentProps {
   school: School;

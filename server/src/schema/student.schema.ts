@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { School } from './school.schema';
 
 export enum Gender {
@@ -26,7 +26,7 @@ export class Student extends Document {
   studentId: string;
 
   @Prop({ required: true, unique: true })
-  registerNumber: string;
+  registrationNumber: string;
 
   @Prop({ required: true })
   firstName: string;
@@ -40,60 +40,20 @@ export class Student extends Document {
   @Prop({ required: true })
   dateOfBirth: Date;
 
-  @Prop({ required: true })
-  birthPlace: string;
-
   @Prop({ required: true, enum: Gender })
   gender: Gender;
-
-  @Prop({ required: true })
-  rollNumber: number;
-
-  @Prop({ required: true })
-  fatherName: string;
-
-  @Prop({ required: true })
-  motherName: string;
-
-  @Prop({
-    type: String,
-    required: true,
-    match: [
-      /^[2-9][0-9]{11}$/,
-      'Aadhaar must be 12 digits and cannot start with 0 or 1',
-    ],
-  })
-  adhaar: string;
-
-  @Prop({ required: true })
-  cast: string;
-
-  @Prop({ required: true })
-  religion: string;
-
-  @Prop({ required: true })
-  nationality: string;
-
-  @Prop({ required: true, min: 1, max: 12 })
-  grade: number;
 
   @Prop({ required: true, enum: Divisions, default: Divisions.A })
   division: Divisions;
 
   @Prop({ required: true })
-  contactNumber: string;
+  rollNumber: string;
 
   @Prop({ required: true })
-  address: string;
+  grade: number;
 
-  @Prop({ required: false })
-  previousSchoolName: string;
-
-  @Prop({ required: true })
-  admissionDate: Date;
-
-  @Prop({ required: false })
-  customFields: [{ key: string; value: string }];
+  @Prop({ type: Map, of: mongoose.Schema.Types.Mixed, default: {} })
+  customFields: Map<string, any>;
 
   @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
   schoolId: Types.ObjectId;

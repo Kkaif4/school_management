@@ -4,13 +4,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 
-import { InjectModel } from '@nestjs/mongoose';
+import { User } from 'src/schema/user.schema';
 import { Model } from 'mongoose';
+import { School } from '../schema/school.schema';
+import { InjectModel } from '@nestjs/mongoose';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
-import { School } from '../schema/school.schema';
 import { SchoolResponseDto } from './dto/school-response.dto';
-import { User } from 'src/schema/user.schema';
 import { SchoolAlreadyExistsException } from 'src/exceptions/already-exists.exception';
 
 export interface SchoolsArray {
@@ -32,9 +32,10 @@ export class SchoolService {
     req: Request,
     createSchoolDto: CreateSchoolDto,
   ): Promise<SchoolResponseDto> {
+    const adminId = req['user'].id.toString();
     try {
       const admin = await this.userModel.findOne({
-        _id: createSchoolDto.adminId,
+        _id: adminId,
       });
 
       if (!admin) {
@@ -43,14 +44,16 @@ export class SchoolService {
       const existingSchool = await this.schoolModel.findOne({
         $and: [
           { name: createSchoolDto.name },
-          { adminId: createSchoolDto.adminId },
+          { name: createSchoolDto.name.toLowerCase() },
+          { adminId: adminId },
         ],
       });
 
       if (existingSchool) {
         throw new SchoolAlreadyExistsException(createSchoolDto.name);
       }
-      const school = await new this.schoolModel(createSchoolDto).save();
+      const schoolData = { ...createSchoolDto, adminId };
+      const school = await new this.schoolModel(schoolData).save();
       const response = {
         success: true,
         message: 'School created successfully',

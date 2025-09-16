@@ -161,7 +161,7 @@ const AdminControlPanel = () => {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <School className="h-5 w-5 text-purple-primary" />
-                      Schools Management
+                      Organizations
                     </CardTitle>
                     <CardDescription>
                       Manage and monitor all educational institutions in your

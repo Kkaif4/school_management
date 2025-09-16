@@ -14,6 +14,9 @@ export class Log {
   @Prop({ type: Types.ObjectId, ref: 'Student', required: true })
   studentId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'School', required: true })
+  schoolId: Types.ObjectId;
+
   @Prop({ required: true })
   documentType: string;
 

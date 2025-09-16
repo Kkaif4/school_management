@@ -91,7 +91,7 @@ export const TableSkeleton = ({ rows = 5 }: { rows?: number }) => {
                 <Skeleton key={i} className="h-4 w-16" />
               ))}
             </div>
-            
+
             {/* Table rows */}
             {Array.from({ length: rows }).map((_, i) => (
               <div key={i} className="grid grid-cols-7 gap-4 py-2">

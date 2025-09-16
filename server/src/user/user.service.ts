@@ -5,7 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from '../schema/user.schema';
 import { UserAlreadyExistsException } from 'src/exceptions/already-exists.exception';
-import { Roles } from 'src/decorator/roles.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
 import { School } from 'src/schema/school.schema';
 import { UserResponseDto } from './dto/user-response.dto';
 
@@ -53,6 +53,8 @@ export class UserService {
         isActive: user.isActive,
       },
     };
+    school.totalTeachers += 1;
+    await school.save();
     return response;
   }
 

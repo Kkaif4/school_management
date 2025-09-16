@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export type CustomField = {
+  name: string;
+  type: 'string' | 'number' | 'date' | 'boolean';
+  required: boolean;
+};
 export interface School {
   _id: string;
   name: string;
@@ -11,6 +16,7 @@ export interface School {
   createdAt: string;
   updatedAt: string;
   contactNumber: string;
+  studentFields: CustomField[];
 }
 
 export const createSchoolSchema = z.object({
@@ -34,3 +40,11 @@ export interface CreateSchoolRequest {
 export interface UpdateSchoolRequest extends Partial<CreateSchoolRequest> {
   id: string;
 }
+
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};

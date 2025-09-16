@@ -11,7 +11,6 @@ export default function StudentsHeader({
 }: StudentsHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-      {/* Title + Subtitle */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Users className="h-6 w-6 text-indigo-600" />
@@ -22,7 +21,6 @@ export default function StudentsHeader({
         </p>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3">
         <button
           onClick={onUploadCSV}

@@ -148,12 +148,11 @@ export default function Teachers({ schoolId }: TeachersProps) {
                       </div>
                     </div>
                   </div>
-                  {/* <div className="flex gap-2">
+                  <div className="flex gap-2">
                     <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-3 py-1.5 bg-indigo-50 rounded-md">
                       View Details
                     </button>
-                    
-                  </div> */}
+                  </div>
                 </div>
               </li>
             ))}

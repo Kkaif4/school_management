@@ -53,23 +53,9 @@ export class CertificateService {
         firstName: student.firstName,
         middleName: student.middleName ?? '',
         lastName: student.lastName,
-        fatherName: student.fatherName,
-        motherName: student.motherName,
         dateOfBirth: student.dateOfBirth,
-        birthPlace: student.birthPlace,
         gender: student.gender,
-        nationality: student.nationality,
-        religion: student.religion,
-        cast: student.cast,
-        adhaar: student.adhaar,
-        registerNumber: student.registerNumber,
-        rollNumber: String(student.rollNumber),
-        grade: String(student.grade),
         division: student.division,
-        admissionDate: student.admissionDate,
-        previousSchoolName: student.previousSchoolName ?? '',
-        address: student.address,
-        contactNumber: student.contactNumber,
       });
 
       return {
@@ -90,7 +76,7 @@ export class CertificateService {
   async findCertificates(schoolId: string) {
     try {
       const certificates = await this.certificateModel.find({ schoolId });
-      if (!certificates || certificates.length === 0) {
+      if (!certificates) {
         throw new NotFoundException('No certificate templates found');
       }
       return certificates;

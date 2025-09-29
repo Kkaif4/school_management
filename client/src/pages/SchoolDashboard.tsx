@@ -13,7 +13,9 @@ const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'students' | 'teachers'>(
+    'home'
+  );
 
   const [school, setSchool] = useState<School | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +28,10 @@ const Dashboard: React.FC = () => {
     try {
       const response = await schoolAPI.getSchoolById(id);
       setSchool(response.data.data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch school data');
+    } catch (err) {
+      if (err) {
+        setError(err.message || 'Failed to fetch school data');
+      }
     } finally {
       setLoading(false);
     }

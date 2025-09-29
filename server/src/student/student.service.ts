@@ -70,7 +70,6 @@ export class StudentService {
 
       return { isDuplicate: false };
     } catch (error) {
-      console.error('Error checking duplicate student:', error);
       throw new InternalServerErrorException(
         'Failed to check for duplicate student',
       );
@@ -104,7 +103,6 @@ export class StudentService {
       const student = await this.studentModel.create(createStudentDto);
       school.totalStudents += 1;
       await school.save();
-      console.log('done');
       return {
         success: true,
         message: 'Student created successfully',
@@ -144,6 +142,8 @@ export class StudentService {
         const task = (async () => {
           try {
             const {
+              studentId,
+              registrationNumber,
               firstName,
               middleName,
               lastName,
@@ -176,6 +176,8 @@ export class StudentService {
             }
 
             const studentData = {
+              studentId,
+              registrationNumber,
               firstName,
               middleName: middleName || null,
               lastName,
@@ -273,7 +275,6 @@ export class StudentService {
         data: students,
       };
     } catch (error) {
-      console.error('Error in findAll:', error);
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -390,7 +391,6 @@ export class StudentService {
   }
 
   async removeAll(schoolId: string): Promise<any> {
-    console.log('deleting all student');
     const school = await this.schoolModel.findById({ _id: schoolId });
     if (!school) {
       throw new NotFoundException('School not found');
@@ -424,7 +424,7 @@ export class StudentService {
       const requiredFields = fieldDefinitions
         .filter((field) => field.required)
         .map((field) => field.name);
-      console.log({ requiredFields });
+
       throw new BadRequestException(
         `No fields provided. Required fields: ${requiredFields.join(', ')}`,
       );

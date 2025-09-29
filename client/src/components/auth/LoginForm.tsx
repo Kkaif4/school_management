@@ -40,12 +40,14 @@ export const LoginForm = ({ onSuccess, onSwitchToSignup }: LoginFormProps) => {
         description: 'Logged in successfully!',
       });
       onSuccess();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    } catch (error) {
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

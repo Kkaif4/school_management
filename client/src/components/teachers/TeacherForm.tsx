@@ -41,6 +41,7 @@ export default function AddTeacherForm({
     setErrors({});
 
     const result = teacherSchema.safeParse(formData);
+
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {

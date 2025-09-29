@@ -76,12 +76,14 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         description: 'Account created successfully!',
       });
       onSuccess();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    } catch (error) {
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -135,10 +135,12 @@ export default function AddStudentForm({
       await addStudent.createStudent(result.data);
       onSuccess();
       onCancel();
-    } catch (err: any) {
-      setErrors({
-        submit: err.message || 'Failed to add student. Please try again.',
-      });
+    } catch (err) {
+      if (err) {
+        setErrors({
+          submit: err.message || 'Failed to add student. Please try again.',
+        });
+      }
     } finally {
       setLoading(false);
     }

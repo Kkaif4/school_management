@@ -68,4 +68,6 @@ export const studentSchema = z.object({
 
 export type StudentFormData = z.infer<typeof studentSchema>;
 
-export interface UpdateStudentRequest extends Partial<StudentFormData> {}
+export interface UpdateStudentRequest extends Partial<StudentFormData> {
+  _id: string;
+}

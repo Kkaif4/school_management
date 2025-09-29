@@ -1,11 +1,23 @@
-import api, { certificateAPI, logsAPI, studentAPI } from '@/lib/api';
+import { certificateAPI, logsAPI } from '@/lib/api';
+import { useSchoolStore } from '@/stores/schoolStore';
 import { formatDate } from '@/types/school';
 import { Student } from '@/types/student';
-import { Edit, Printer, Trash, FileText, Clock, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Printer, FileText, Clock, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface StudentDetailFooterProps {
   student: Student;
+}
+
+interface Log {
+  message: string;
+  createdAt: string;
+}
+
+interface Document {
+  _id: string;
+  name: string;
+  createdAt: string;
 }
 
 const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
@@ -13,15 +25,17 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
   const [showLogs, setShowLogs] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
-  const [documentList, setDocumentList] = useState<any[]>([]);
+  const [documentList, setDocumentList] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
 
   const [printingDocument, setPrintingDocument] = useState<string | null>(null);
 
-  const fetchLogs = async () => {
+  const { school } = useSchoolStore();
+
+  const fetchLogs = useCallback(async () => {
     if (!student._id) return setError('Student ID is missing.');
 
     setLoadingLogs(true);
@@ -29,14 +43,14 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
     try {
       const response = await logsAPI.getLogs(student._id);
       setLogs(response.data.data || []);
-    } catch (err: any) {
-      if (err.response?.status === 404) setLogs([]);
+    } catch (err) {
+      if (err?.response?.status === 404) setLogs([]);
       else setError('Failed to fetch logs. Please try again later.');
     }
     setLoadingLogs(false);
-  };
+  }, [student._id]);
 
-  const fetchDocumentList = async () => {
+  const fetchDocumentList = useCallback(async () => {
     if (!student._id) return setError('Student ID is missing.');
 
     setLoadingDocs(true);
@@ -44,12 +58,12 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
     try {
       const response = await certificateAPI.getCertificates(student.schoolId);
       setDocumentList(response.data || []);
-    } catch (err: any) {
-      if (err.response?.status === 404) setDocumentList([]);
+    } catch (err) {
+      if (err?.response?.status === 404) setDocumentList([]);
       else setError('Failed to fetch documents.');
     }
     setLoadingDocs(false);
-  };
+  }, [student._id, student.schoolId]);
 
   const fetchStudentDocs = async (docId: string) => {
     setPrintingDocument(docId);
@@ -57,29 +71,30 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
 
     try {
       const response = await certificateAPI.generateCertificate(
+        school._id!,
         student._id!,
         docId
       );
-      const zplCode = response.data.data;
+      const htmlContent = response.data.data;
 
-      const labelaryResponse = await fetch(
-        'https://api.labelary.com/v1/printers/8dpmm/labels/4x6/0/',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: zplCode,
-        }
-      );
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
 
-      if (!labelaryResponse.ok)
-        throw new Error('Unable to render certificate.');
+      iframe.contentDocument?.open();
+      iframe.contentDocument?.write(htmlContent);
+      iframe.contentDocument?.close();
 
-      const blob = await labelaryResponse.blob();
-      const previewUrl = URL.createObjectURL(blob);
-
-      window.open(previewUrl, '_blank');
-    } catch (err: any) {
-      setError(err.message || 'Error generating certificate preview.');
+      iframe.onload = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        document.body.removeChild(iframe);
+      };
+    } catch (err) {
+      setError(err?.message || 'Error generating certificate preview.');
     }
 
     setPrintingDocument(null);
@@ -87,13 +102,14 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
 
   useEffect(() => {
     if (showDocuments) fetchDocumentList();
-  }, [showDocuments]);
+  }, [fetchDocumentList, showDocuments]);
+
   useEffect(() => {
     if (showLogs) fetchLogs();
-  }, [showLogs]);
+  }, [fetchLogs, showLogs]);
+
   return (
     <div className="mt-6 flex flex-wrap justify-end gap-3 pt-4 border-t border-gray-200 bg-white px-4 md:px-6 py-4">
-      {/* Documents */}
       <button
         onClick={() => setShowDocuments(true)}
         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
@@ -101,7 +117,6 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
         Documents
       </button>
 
-      {/* Logs */}
       <button
         onClick={() => setShowLogs(true)}
         className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2">
@@ -109,19 +124,9 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
         Logs
       </button>
 
-      {/* Edit */}
-      {/* <button
-        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-        onClick={() => console.log('Edit student:', student._id)}>
-        <Edit className="h-4 w-4" />
-        Edit Student
-      </button> */}
-
-      {/* Shared Modal */}
       {(showDocuments || showLogs) && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg md:max-w-2xl p-6 m-4 relative">
-            {/* Error handling */}
             {error && (
               <div className="mb-4 flex items-center gap-2 p-3 bg-red-100 text-red-700 rounded-lg">
                 <XCircle className="h-5 w-5" />
@@ -129,7 +134,6 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
               </div>
             )}
 
-            {/* Documents Modal */}
             {showDocuments && (
               <>
                 <h2 className="text-lg font-semibold mb-4">
@@ -169,7 +173,6 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
               </>
             )}
 
-            {/* Logs Modal */}
             {showLogs && (
               <>
                 <h2 className="text-lg font-semibold mb-4">
@@ -194,7 +197,6 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
               </>
             )}
 
-            {/* Close button */}
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => {

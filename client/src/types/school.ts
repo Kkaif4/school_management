@@ -32,7 +32,7 @@ export interface CreateSchoolRequest {
   name: string;
   adminId: string;
   principalName: string;
-  contactNumber: String;
+  contactNumber: number;
   address: string;
   isActive: boolean;
 }

@@ -1,5 +1,4 @@
 import { useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,14 +11,6 @@ import { Home, AlertCircle } from 'lucide-react';
 
 const NotFound = () => {
   const location = useLocation();
-
-  useEffect(() => {
-    console.log(
-      '404 Error: User attempted to access non-existent route:',
-      location.pathname
-    );
-  }, [location.pathname]);
-
   return (
     <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-elegant border-purple-primary/20">

@@ -1,14 +1,16 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSchoolStore } from '@/stores/schoolStore';
 import { Student } from '@/types/student';
 import { studentAPI } from '@/lib/api';
-import StudentsHeader from './StudentsHeader';
-import StudentsFilters from './StudentsFilters';
-import StudentsList from './StudentsList';
-import EmptyState from './EmptyState';
+import Filters from '../common/Filters';
+import EmptyState from '../common/EmptyState';
 import AddStudentModal from './AddStudentModal';
 import StudentDetails from './StudentsDetails';
-import AddStudentForm from './StudentForm';
+import { DataTable } from '../common/dataTable';
+import { Eye, Plus, Trash2, Upload, Users } from 'lucide-react';
+import WarningModal from '../ui/warning';
+import EntityHeader from '../common/CommonHeader';
+import { toast } from '@/hooks/use-toast';
 
 interface StudentsProps {
   schoolId: string;
@@ -23,9 +25,8 @@ export default function Students({ schoolId }: StudentsProps) {
   const [loading, setLoading] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedDivision, setSelectedDivision] = useState<string>('all');
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const fetchStudents = useCallback(async () => {
     setError(null);
@@ -33,8 +34,8 @@ export default function Students({ schoolId }: StudentsProps) {
     try {
       const response = await studentAPI.getStudent(schoolId);
       setStudents(response.data.data);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err) {
+      if (err && err.response?.status === 404) {
         setStudents([]);
       } else {
         setError(err.message || 'Failed to fetch students');
@@ -78,49 +79,28 @@ export default function Students({ schoolId }: StudentsProps) {
 
   const handleCloseDetails = () => {
     setIsDetailsOpen(false);
-    setSelectedStudent(null);
   };
 
-  const handleUploadCSVClick = () => {
-    fileInputRef.current?.click();
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+
+  const handleDeleteStudent = (student: Student) => {
+    setSelectedStudent(student);
+    setShowDeleteWarning(true);
   };
 
-  const onStudentDelete = async (studentId: string) => {
-    try {
-      await studentAPI.deleteStudent(studentId);
-      alert('Student deleted successfully');
-      fetchStudents();
-    } catch (err: any) {
-      console.log(err);
-      alert('Failed to delete student.');
-    }
-  };
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('schoolId', schoolId);
+  const confirmDelete = async () => {
+    if (!selectedStudent?._id) return;
 
     try {
-      const response = await studentAPI.uploadCSV(formData);
-      alert(
-        `${
-          response.data.summary.saved || 'Some'
-        } students uploaded successfully!`
-      );
-      fetchStudents(); // refresh list
-    } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-          'Failed to upload students. Please check CSV format.'
-      );
+      await studentAPI.deleteStudent(selectedStudent._id);
+      fetchStudents(); // Refresh the list
+      setShowDeleteWarning(false);
+      setSelectedStudent(null);
+    } catch (error) {
+      if (error) {
+        toast(error.response?.data?.message || 'Failed to delete student');
+      }
     }
-
-    event.target.value = '';
   };
 
   if (loading) {
@@ -142,26 +122,60 @@ export default function Students({ schoolId }: StudentsProps) {
     );
   }
 
+  const getHeaderActions = () => [
+    {
+      label: 'Upload CSV',
+      icon: Upload,
+      isFileUpload: true,
+      accept: '.csv',
+      variant: 'secondary' as const,
+
+      onFileSelect: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('schoolId', schoolId);
+
+        try {
+          const response = await studentAPI.uploadCSV(formData);
+          toast({
+            title: 'Success!',
+            description: `${response.data.summary.saved} students uploaded successfully!`,
+            variant: 'default',
+          });
+          fetchStudents();
+        } catch (error) {
+          if (error) {
+            toast({
+              title: 'Upload Failed',
+              description:
+                'Failed to upload students. Please check CSV format.',
+              variant: 'destructive',
+            });
+          }
+        }
+      },
+    },
+    {
+      label: 'Add Student',
+      icon: Plus,
+      variant: 'primary' as const,
+      onClick: () => setIsFormOpen(true),
+    },
+  ];
+
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
       {/* Header */}
-      <StudentsHeader
-        onAddStudent={() => setIsFormOpen(true)}
-        onUploadCSV={handleUploadCSVClick}
-      />
-
-      {/* Hidden CSV input */}
-      <input
-        type="file"
-        accept=".csv"
-        ref={fileInputRef}
-        className="hidden"
-        onChange={handleFileChange}
+      <EntityHeader
+        title="Students"
+        description="Manage student enrollment and information"
+        icon={Users}
+        actions={getHeaderActions()}
       />
 
       {/* Filters */}
       <div className="mt-4 sm:mt-6">
-        <StudentsFilters
+        <Filters
           searchTerm={searchTerm}
           selectedGrade={selectedGrade}
           selectedDivision={selectedDivision}
@@ -174,18 +188,31 @@ export default function Students({ schoolId }: StudentsProps) {
 
       {/* Student List or Empty State */}
       <div className="mt-4 sm:mt-6">
-        {filteredStudents.length > 0 ? (
-          <StudentsList
-            students={students}
-            filteredStudents={filteredStudents}
-            onStudentClick={handleStudentClick}
-          />
-        ) : (
-          <EmptyState
-            hasStudents={students.length > 0}
-            onAddStudent={() => setIsFormOpen(true)}
-          />
-        )}
+        <DataTable
+          data={filteredStudents}
+          actions={[
+            {
+              label: 'Details',
+              icon: <Eye />,
+              onClick: handleStudentClick,
+            },
+            {
+              label: 'Delete',
+              icon: <Trash2 />,
+              variant: 'destructive',
+              onClick: handleDeleteStudent,
+            },
+          ]}
+          loading={loading}
+          emptyState={
+            <EmptyState
+              hasData={students.length > 0}
+              entityName="student"
+              icon={<Users className="h-full w-full" />}
+              onAdd={() => setIsFormOpen(true)}
+            />
+          }
+        />
       </div>
 
       {/* Add Student Modal */}
@@ -195,19 +222,8 @@ export default function Students({ schoolId }: StudentsProps) {
           schoolId={school._id}
           onSuccess={fetchStudents}
           onCancel={() => setIsFormOpen(false)}
-          onClose={() => setIsFormOpen(false)}>
-          <>
-            <AddStudentForm
-              schoolId={school._id}
-              customField={school.studentFields || []}
-              onSuccess={() => {
-                fetchStudents();
-                setIsFormOpen(false);
-              }}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </>
-        </AddStudentModal>
+          onClose={() => setIsFormOpen(false)}
+        />
       )}
 
       {/* Student Details Modal */}
@@ -218,6 +234,20 @@ export default function Students({ schoolId }: StudentsProps) {
           onClose={handleCloseDetails}
         />
       )}
+
+      {/* Delete Warning Modal */}
+      <WarningModal
+        isOpen={showDeleteWarning}
+        onClose={() => {
+          setShowDeleteWarning(false);
+          setSelectedStudent(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Student"
+        message={`Are you sure you want to delete ${selectedStudent?.firstName} ${selectedStudent?.lastName}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

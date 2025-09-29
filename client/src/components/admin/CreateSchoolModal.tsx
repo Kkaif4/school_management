@@ -113,7 +113,7 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
       const payload = {
         ...data,
         ...(isEditing
-          ? {} // 🚫 exclude studentFields when editing
+          ? {}
           : { studentFields: enableCustomFields ? studentFields : [] }),
       };
 
@@ -127,12 +127,14 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
 
       onSchoolCreated();
       handleClose();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Something went wrong',
-        variant: 'destructive',
-      });
+    } catch (error) {
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Something went wrong',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

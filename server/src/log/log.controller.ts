@@ -12,35 +12,13 @@ export class LogController {
   constructor(private readonly logService: LogService) {}
 
   @Get(':studentId')
-  async getStudentLogs(
-    @Param('studentId') studentId: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('documentType') documentType?: string,
-  ) {
-    return this.logService.getLogsByStudent(studentId, {
-      page,
-      limit,
-      sort,
-      documentType,
-    });
+  async getStudentLogs(@Param('studentId') studentId: string) {
+    return this.logService.getLogsByStudent(studentId);
   }
 
   @Get('school/:schoolId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async getSchoolLogs(
-    @Param('schoolId') schoolId: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('documentType') documentType?: string,
-  ) {
-    return this.logService.getLogsBySchool(schoolId, {
-      page,
-      limit,
-      sort,
-      documentType,
-    });
+  async getSchoolLogs(@Param('schoolId') schoolId: string) {
+    return this.logService.getLogsBySchool(schoolId);
   }
 }

@@ -9,8 +9,9 @@ import { Model } from 'mongoose';
 import * as Handlebars from 'handlebars';
 import { Certificate } from '../schema/certificate.schema';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
-import { Bonafide } from 'src/utils/bonafide';
 import { Student } from 'src/schema/student.schema';
+import { School } from 'src/schema/school.schema';
+import { Log } from 'src/schema/log.schema';
 
 @Injectable()
 export class CertificateService {
@@ -19,6 +20,9 @@ export class CertificateService {
     private readonly certificateModel: Model<Certificate>,
     @InjectModel(Student.name)
     private readonly studentModel: Model<Student>,
+    @InjectModel(School.name)
+    private readonly schoolModel: Model<School>,
+    @InjectModel(Log.name) private readonly logService: Model<Log>,
   ) {}
 
   async create(createCertificateDto: CreateCertificateDto) {
@@ -30,10 +34,14 @@ export class CertificateService {
     return result;
   }
 
-  async generateCertificate(data: {
-    studentId: string;
-    certificateId: string;
-  }) {
+  async generateCertificate(
+    data: {
+      schoolId: string;
+      studentId: string;
+      certificateId: string;
+    },
+    req: Request,
+  ) {
     try {
       const student = await this.studentModel.findById({ _id: data.studentId });
       if (!student) {
@@ -43,21 +51,51 @@ export class CertificateService {
         _id: data.certificateId,
       });
 
+      const school = await this.schoolModel.findOne({ _id: data.schoolId });
+
+      if (!school) {
+        throw new NotFoundException('School not found for the student');
+      }
       if (!certificate) {
         throw new NotFoundException('Certificate template not found');
       }
 
-      const template = Handlebars.compile(certificate.templateCode);
+      let cleanTemplateCode = certificate.templateCode.replace(/\\n/g, '');
+      const template = Handlebars.compile(cleanTemplateCode);
 
+      const customFieldsObj = Object.fromEntries(student.customFields);
       const newCertificate = template({
+        studentId: student.studentId,
+        registrationNumber: student.registrationNumber,
         firstName: student.firstName,
         middleName: student.middleName ?? '',
         lastName: student.lastName,
-        dateOfBirth: student.dateOfBirth,
+        dateOfBirth: new Date(student.dateOfBirth).toLocaleDateString('en-GB'),
         gender: student.gender,
+        grade: student.grade,
         division: student.division,
+        rollNumber: student.rollNumber,
+
+        // Add this for dynamic fields
+        customFields: customFieldsObj || {},
       });
 
+      try {
+        const logData = {
+          action: 'Generate Certificate',
+          message: `generated ${certificate.name} for student ${student.firstName} ${student.lastName} by ${req['user'].name}`,
+          timestamp: new Date(),
+          documentId: certificate._id,
+          documentType: certificate.name,
+          studentId: student._id,
+          userId: req['user'].id.toString(),
+          schoolId: data.schoolId,
+        };
+
+        const log = await this.logService.create(logData);
+      } catch (error) {
+        console.error('Failed to log certificate generation action:', error);
+      }
       return {
         success: true,
         message: `${certificate.name} generated for ${student.firstName} ${student.lastName}`,

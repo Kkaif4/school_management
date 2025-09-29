@@ -29,8 +29,10 @@ const Dashboard: React.FC = () => {
     try {
       const response = await schoolAPI.getSchoolById(id);
       setSchool(response.data.data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch school data');
+    } catch (err) {
+      if (err) {
+        setError(err.message || 'Failed to fetch school data');
+      }
     } finally {
       setLoading(false);
     }

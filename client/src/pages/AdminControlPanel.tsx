@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Card,
@@ -47,8 +47,8 @@ const AdminControlPanel = () => {
       setIsLoading(true);
       const response = await schoolAPI.getSchools();
       setSchools(response.data.data || []);
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error) {
+      if (error && error.response?.status === 404) {
         setSchools([]);
         return;
       }
@@ -87,8 +87,8 @@ const AdminControlPanel = () => {
         description: 'School deleted successfully',
       });
       fetchSchools();
-    } catch (error: any) {
-      if (error.status === 404) {
+    } catch (error) {
+      if (error && error.status === 404) {
         toast({
           title: 'Not Found',
           description: 'School not found or already deleted',

@@ -105,7 +105,11 @@ export default function StudentDetails({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                         {Object.entries(student.customFields).map(
                           ([key, value], idx) => (
-                            <Info key={idx} label={key} value={value} />
+                            <Info
+                              key={idx}
+                              label={key}
+                              value={formatInfoValue(value)}
+                            />
                           )
                         )}
                       </div>
@@ -147,7 +151,30 @@ function Section({
   );
 }
 
-function Info({ label, value }: { label: string; value: any }) {
+function formatInfoValue(value: unknown): string {
+  if (typeof value === 'boolean') {
+    return value ? 'Yes' : 'No';
+  }
+
+  if (typeof value === 'object' && value !== null && 'value' in value) {
+    const val = (value as { value: string }).value;
+    return val || '—';
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value.toString() || '—';
+  }
+
+  return '—';
+}
+
+function Info({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | boolean | number;
+}) {
   // FIX 1: Changed layout from justify-between to a more controlled flex layout
   return (
     <div className="flex items-start text-sm">

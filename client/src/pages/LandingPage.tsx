@@ -13,10 +13,11 @@ import { useModalStore } from '@/stores/modalStore';
 import { features } from '@/assets/Features';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { User } from '@/contexts/AuthContext';
 const LandingPage = () => {
   const { authModal, openAuthModal, closeAuthModal } = useModalStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +29,6 @@ const LandingPage = () => {
   }, []);
 
   const handleDashboardClick = () => {
-    console.log(userData);
     if (userData?.role === 'admin' || userData?.role === 'super_admin') {
       navigate('/admin/control-panel');
     } else if (userData?.role === 'teacher' && userData?.schoolId) {

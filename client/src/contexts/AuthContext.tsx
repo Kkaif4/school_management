@@ -6,9 +6,9 @@ import {
   ReactNode,
 } from 'react';
 import { authAPI } from '../lib/api';
-import { date } from 'zod';
 
 import { UserRole } from '@/types/teacher';
+import { useToast } from '@/hooks/use-toast';
 
 export interface User {
   id: string;
@@ -44,6 +44,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -54,7 +55,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
       } catch (error) {
-        console.log('Error parsing user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
@@ -68,8 +68,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+    } catch (error) {
+      toast({
+        title: 'Login Failed',
+        description: 'Invalid email or password.',
+        variant: 'destructive',
+      });
+      throw new Error('Login failed');
     }
   };
 
@@ -80,8 +85,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Signup failed');
+    } catch (error) {
+      if (error) {
+        toast({
+          title: 'Signup Failed',
+          description: 'Could not complete registration. Please try again.',
+          variant: 'destructive',
+        });
+        throw new Error('Signup failed');
+      }
     }
   };
 

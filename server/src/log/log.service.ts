@@ -13,15 +13,7 @@ export class LogService {
 
   async createLog(logData: CreateLogDto): Promise<Log | null> {
     try {
-      // Convert string IDs to ObjectIds
-      const formattedLogData = {
-        ...logData,
-        userId: new Types.ObjectId(logData.userId),
-        studentId: new Types.ObjectId(logData.studentId),
-        documentId: new Types.ObjectId(logData.documentId),
-      };
-
-      const log = await this.logModel.create(formattedLogData);
+      const log = await this.logModel.create(logData);
       return log;
     } catch (error) {
       console.error('Error creating log:', error.message);
@@ -32,94 +24,43 @@ export class LogService {
     }
   }
 
-  async getLogsByStudent(
-    studentId: string,
-    options: {
-      page?: number;
-      limit?: number;
-      sort?: 'asc' | 'desc';
-      documentType?: string;
-    },
-  ) {
+  async getLogsByStudent(studentId: string) {
     try {
-      const { page = 1, limit = 20, sort = 'desc', documentType } = options;
-      const skip = (page - 1) * limit;
       const query: any = { studentId: new Types.ObjectId(studentId) };
-
-      if (documentType) {
-        query.documentType = documentType;
-      }
-
-      const [logs, total] = await Promise.all([
-        this.logModel
-          .find(query)
-          .sort({ createdAt: sort === 'desc' ? -1 : 1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('userId', 'name email')
-          .populate('studentId', 'firstName lastName rollNumber')
-          .lean(),
-        this.logModel.countDocuments(query),
-      ]);
+      const logs = await this.logModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .populate('userId', 'name email')
+        .populate('studentId', 'firstName lastName rollNumber')
+        .lean();
 
       return {
         success: true,
         data: logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
       };
     } catch (error) {
       console.error('Error fetching student logs:', error);
       return {
         success: false,
-        message: 'Failed to fetch student logs',
+        message: error.message || 'Failed to fetch student logs',
       };
     }
   }
 
-  async getLogsBySchool(
-    schoolId: string,
-    options: {
-      page?: number;
-      limit?: number;
-      sort?: 'asc' | 'desc';
-      documentType?: string;
-    },
-  ) {
+  async getLogsBySchool(schoolId: string) {
     try {
-      const { page = 1, limit = 20, sort = 'desc', documentType } = options;
-      const skip = (page - 1) * limit;
       const query: any = { schoolId: new Types.ObjectId(schoolId) };
 
-      if (documentType) {
-        query.documentType = documentType;
-      }
-
-      const [logs, total] = await Promise.all([
-        this.logModel
-          .find(query)
-          .sort({ createdAt: sort === 'desc' ? -1 : 1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('userId', 'name email')
-          .populate('studentId', 'firstName lastName rollNumber')
-          .lean(),
-        this.logModel.countDocuments(query),
-      ]);
+      const logs = await this.logModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .populate('userId', 'name email')
+        .populate('studentId', 'firstName lastName rollNumber')
+        .lean();
 
       return {
         success: true,
         data: logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
       };
     } catch (error) {
       console.error('Error fetching school logs:', error);

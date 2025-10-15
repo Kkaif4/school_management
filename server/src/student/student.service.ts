@@ -7,22 +7,22 @@ import {
 
 import csv from 'csv-parser';
 import { School } from 'src/schema/school.schema';
-import { Student } from '../schema/student.schema';
+import { Divisions, Student } from '../schema/student.schema';
 import { Readable } from 'stream';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import {
   CSVError,
   StudentResponseDto,
   CSVProcessingResult,
 } from './dto/student-response.dto';
 import { CreateStudentDto } from './dto/create-student.dto';
-import { StudentArrayResponse } from './dto/student-response.dto';
 import { Log } from 'src/schema/log.schema';
-
-function clamp(num: number, min: number, max: number): number {
-  return Math.min(Math.max(num, min), max);
-}
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { PaginationUtil } from 'src/utils/pagination.utils';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
+import { PaginatedData } from 'src/user/dto/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 interface DuplicateCheckResult {
   isDuplicate: boolean;
@@ -39,87 +39,74 @@ export class StudentService {
     private schoolModel: Model<School>,
     @InjectModel(Log.name)
     private logModel: Model<Log>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
   private async checkDuplicateStudent(
     schoolId: string,
     grade: string | number,
     rollNumber: string | number,
+    division: Divisions,
     excludeStudentId?: string,
   ): Promise<DuplicateCheckResult> {
-    try {
-      const query = {
-        schoolId,
-        grade: grade.toString(),
-        rollNumber: rollNumber.toString(),
-      };
+    const query = {
+      schoolId,
+      grade: grade.toString(),
+      rollNumber: rollNumber.toString(),
+      division: division,
+    };
 
-      if (excludeStudentId) {
-        Object.assign(query, { _id: { $ne: excludeStudentId } });
-      }
-
-      const existingStudent = await this.studentModel.findOne(query);
-
-      if (existingStudent) {
-        return {
-          isDuplicate: true,
-          existingStudent,
-          message: `A student with roll number ${rollNumber} already exists in grade ${grade}`,
-        };
-      }
-
-      return { isDuplicate: false };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Failed to check for duplicate student',
-      );
+    if (excludeStudentId) {
+      Object.assign(query, { _id: { $ne: excludeStudentId } });
     }
+
+    const existingStudent = await this.studentModel.findOne(query);
+
+    if (existingStudent) {
+      return {
+        isDuplicate: true,
+        existingStudent,
+        message: `A student with roll number ${rollNumber} already exists in ${grade}${division}`,
+      };
+    }
+
+    return { isDuplicate: false };
   }
 
   async create(
     createStudentDto: CreateStudentDto,
   ): Promise<StudentResponseDto> {
-    try {
-      const { schoolId, customFields, ...rest } = createStudentDto;
-      const school = await this.schoolModel.findById({
-        _id: schoolId,
-      });
-      if (!school) {
-        throw new NotFoundException('School not found');
-      }
-      const duplicateCheck = await this.checkDuplicateStudent(
-        createStudentDto.schoolId,
-        createStudentDto.grade,
-        createStudentDto.rollNumber,
-      );
-      if (duplicateCheck.isDuplicate) {
-        throw new BadRequestException(duplicateCheck.message);
-      }
-
-      if (school.studentFields.length > 0) {
-        this.validateCustomFields(school.studentFields, customFields);
-      }
-
-      const student = await this.studentModel.create(createStudentDto);
-      school.totalStudents += 1;
-      await school.save();
-      return {
-        success: true,
-        message: 'Student created successfully',
-        data: student,
-      };
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException(
-        error.message ||
-          'Something went wrong while creating new student. Please try again.',
-      );
+    const { schoolId } = createStudentDto;
+    const school = await this.schoolModel.findById({
+      _id: schoolId,
+    });
+    if (!school) {
+      throw new NotFoundException('School not found');
     }
+    const duplicateCheck = await this.checkDuplicateStudent(
+      createStudentDto.schoolId,
+      createStudentDto.grade,
+      createStudentDto.rollNumber,
+      createStudentDto.division ?? Divisions.A,
+    );
+    if (duplicateCheck.isDuplicate) {
+      throw new BadRequestException(duplicateCheck.message);
+    }
+
+    const customFieldsCopy = { ...createStudentDto.customFields };
+
+    if (school.studentFields.length > 0) {
+      this.validateCustomFields(school.studentFields, customFieldsCopy);
+    }
+
+    const student = await this.studentModel.create({
+      ...createStudentDto,
+      customFields: customFieldsCopy,
+    });
+
+    school.totalStudents += 1;
+    await school.save();
+    return this.findOne(student._id.toString());
   }
 
   async processCSVFile(
@@ -159,6 +146,7 @@ export class StudentService {
               schoolId,
               grade,
               rollNumber,
+              division,
             );
 
             if (duplicateCheck.isDuplicate) {
@@ -238,146 +226,36 @@ export class StudentService {
     });
   }
 
-  async findAll(
-    page = 1,
-    limit = 10,
-    sort: string = 'createdAt',
-    order: 'asc' | 'desc' = 'desc',
-    search?: string,
-  ): Promise<StudentArrayResponse> {
-    try {
-      const pageNumber = Math.max(1, Number(page));
-      const pageSize = clamp(Number(limit), 1, 100);
-      const skip = (pageNumber - 1) * pageSize;
-
-      let query = this.studentModel.find();
-      if (search) {
-        query = query.or([
-          { firstName: new RegExp(search, 'i') },
-          { lastName: new RegExp(search, 'i') },
-          { rollNumber: new RegExp(search, 'i') },
-          { grade: new RegExp(search, 'i') },
-        ]);
-      }
-      const students = await query
-        .sort({ [sort]: order })
-        .skip(skip)
-        .limit(pageSize)
-        .select('-__v');
-
-      if (!students || students.length === 0) {
-        throw new NotFoundException('No students found');
-      }
-
-      return {
-        success: true,
-        message: 'Students found successfully',
-        data: students,
-      };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        'Failed to fetch students. Please try again later.',
-      );
+  async findBySchool(schoolId: string): Promise<Student[]> {
+    const school = await this.schoolModel.findById({ _id: schoolId });
+    if (!school) {
+      throw new NotFoundException('School not found');
     }
-  }
-
-  async findBySchool(
-    schoolId: string,
-    page = 1,
-    limit = 20,
-    sort: string = 'createdAt',
-    order: 'asc' | 'desc' = 'desc',
-    search?: string,
-  ): Promise<StudentArrayResponse> {
-    try {
-      if (!Types.ObjectId.isValid(schoolId)) {
-        throw new BadRequestException('Invalid school ID');
-      }
-      const school = await this.schoolModel.findById({ _id: schoolId });
-      if (!school) {
-        throw new NotFoundException('School not found');
-      }
-      const pageNumber = Math.max(1, Number(page));
-      const pageSize = clamp(Number(limit), 1, 100);
-      const skip = (pageNumber - 1) * pageSize;
-
-      const [students, total] = await Promise.all([
-        this.studentModel.find({ schoolId }).skip(skip).limit(limit),
-        this.studentModel.countDocuments({ schoolId }),
-      ]);
-
-      if (!students || students.length === 0) {
-        throw new NotFoundException('No students found for this school');
-      }
-      return {
-        success: true,
-        message: 'Students found successfully',
-        total: total,
-        data: students,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        error.message ||
-          'Failed to fetch school students. Please try again later.',
-      );
-    }
+    const students = await this.studentModel.find({ schoolId }).lean();
+    return students;
   }
 
   async findOne(id: string): Promise<StudentResponseDto> {
-    if (!Types.ObjectId.isValid(id)) {
+    const student = await this.studentModel.findById(id);
+    if (!student) {
       throw new NotFoundException('Student not found');
     }
-    try {
-      const student = await this.studentModel.findById(id);
-      if (!student) {
-        throw new NotFoundException('Student not found');
-      }
-      const response = {
-        success: true,
-        message: 'Student found successfully',
-        data: student,
-      };
-
-      return response;
-    } catch (error) {
-      throw new BadRequestException(error.message || 'Something went wrong');
-    }
+    return this.transformService.transform(StudentResponseDto, student);
   }
 
   async update(id: string, updateStudentDto: any): Promise<StudentResponseDto> {
-    if (!Types.ObjectId.isValid(id)) {
+    const student = await this.studentModel.findByIdAndUpdate(
+      id,
+      updateStudentDto,
+      { new: true },
+    );
+    if (!student) {
       throw new NotFoundException('Student not found');
     }
-    try {
-      const student = await this.studentModel.findByIdAndUpdate(
-        id,
-        updateStudentDto,
-        { new: true },
-      );
-      if (!student) {
-        throw new NotFoundException('Student not found');
-      }
-      const response = {
-        success: true,
-        message: 'Student updated successfully',
-        data: student,
-      };
-      return response;
-    } catch (error) {
-      throw new BadRequestException(error.message || 'Something went wrong');
-    }
+    return this.transformService.transform(StudentResponseDto, student);
   }
 
-  async remove(id: string): Promise<Student> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Student not found');
-    }
+  async remove(id: string): Promise<{ deleted: boolean }> {
     const student = await this.studentModel.findByIdAndDelete(id);
     const school = await this.schoolModel.findById({ _id: student?.schoolId });
     if (school) {
@@ -387,19 +265,24 @@ export class StudentService {
     if (!student) {
       throw new NotFoundException('Student not found');
     }
-    return student;
+    return { deleted: true };
   }
 
-  async removeAll(schoolId: string): Promise<any> {
+  async removeAll(schoolId: string): Promise<{ deleted: boolean }> {
     const school = await this.schoolModel.findById({ _id: schoolId });
     if (!school) {
       throw new NotFoundException('School not found');
     }
-    const students = await this.studentModel.deleteMany({ schoolId });
-    const updateLogs = await this.logModel.deleteMany({});
+
+    await Promise.all([
+      this.studentModel.deleteMany({ schoolId }).lean(),
+      this.logModel.deleteMany({ schoolId }).lean(),
+    ]);
+
     school.totalStudents = 0;
     await school.save();
-    return students;
+
+    return { deleted: true };
   }
 
   private validateCustomFields(

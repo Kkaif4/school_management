@@ -1,10 +1,10 @@
 import { CreateSchoolFormData } from '@/components/admin/CreateSchoolModal';
 import { StudentFormData } from '@/types/student';
-import { Teacher, TeacherFormData } from '@/types/teacher';
+import { UserFormData } from '@/types/users';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4000',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -46,28 +46,27 @@ export const studentAPI = {
     api.post('/student/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  getStudent: (schoolId: string) => api.get(`/student/${schoolId}`),
+  getStudents: (schoolId: string) => api.get(`/student/school/${schoolId}`),
   getStudentById: (id: string) => api.get(`/student/${id}`),
   updateStudent: (id: string, studentData: StudentFormData) =>
     api.patch(`/student/${id}`, studentData),
   deleteStudent: (id: string) => api.delete(`/student/${id}`),
 };
 
-export const teacherAPI = {
-  createTeacher: (teacherData: TeacherFormData) =>
-    api.post('/user', teacherData),
+export const userAPI = {
+  createUser: (userData: UserFormData) => api.post('/user', userData),
 
-  getTeachers: (schoolId: string) => api.get(`/user/teachers/${schoolId}`),
+  getUsers: (schoolId: string) => api.get(`/user/teachers/${schoolId}`),
 
   uploadCSV: (formData: FormData) =>
     api.post('/user/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 
-  updateTeacher: (id: string, teacherData: TeacherFormData) =>
-    api.patch(`/user/${id}`, teacherData),
+  updateUser: (id: string, userData: UserFormData) =>
+    api.patch(`/user/${id}`, userData),
 
-  deleteTeacher: (id: string) => api.delete(`/user/${id}`),
+  deleteUser: (id: string) => api.delete(`/user/${id}`),
 };
 
 interface certificateData {
@@ -76,7 +75,7 @@ interface certificateData {
   name: string;
 }
 export const certificateAPI = {
-  createCertificate: (data: certificateData) => api.post(`/certificate/`, data),
+  createCertificate: (data: certificateData) => api.post(`/certificate`, data),
 
   getCertificates: (schoolId: string) => api.get(`/certificate/${schoolId}`),
 
@@ -87,6 +86,8 @@ export const certificateAPI = {
   ) => api.get(`/certificate/${schoolId}/${studentId}/${certificateId}`),
 
   getCertificateById: (id: string) => api.get(`/certificate/${id}`),
+
+  deleteCertificate: (id: string) => api.delete(`/certificate/${id}`),
 };
 
 export const logsAPI = {

@@ -6,18 +6,20 @@ import HomeContent from '@/components/school/HomeContent';
 import { School } from '@/types/school';
 import { schoolAPI } from '@/lib/api';
 import Students from '@/components/student/Students';
-import Teachers from '@/components/teachers/Teachers';
+import Users from '@/components/user/Users';
+import { toast } from '@/components/ui/sonner';
+import { useSchoolStore } from '@/stores/schoolStore';
 
 const Dashboard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, logout } = useAuth();
 
+  const { school, setSchool } = useSchoolStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'students' | 'teachers'>(
     'home'
   );
 
-  const [school, setSchool] = useState<School | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,10 +30,12 @@ const Dashboard: React.FC = () => {
     try {
       const response = await schoolAPI.getSchoolById(id);
       setSchool(response.data.data);
+      toast('School data fetched successfully');
     } catch (err) {
       if (err) {
         setError(err.message || 'Failed to fetch school data');
       }
+      toast.error('Failed to fetch school data');
     } finally {
       setLoading(false);
     }
@@ -94,7 +98,7 @@ const Dashboard: React.FC = () => {
           )}
 
           {activeTab === 'students' && <Students schoolId={id!} />}
-          {activeTab === 'teachers' && <Teachers schoolId={id!} />}
+          {activeTab === 'teachers' && <Users schoolId={id!} />}
         </main>
       </div>
     </div>

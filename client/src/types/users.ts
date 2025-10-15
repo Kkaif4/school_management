@@ -7,7 +7,7 @@ export enum UserRole {
   TEACHER = 'teacher',
 }
 
-export interface Teacher {
+export interface User {
   _id: string;
   name: string;
   email: string;
@@ -18,7 +18,7 @@ export interface Teacher {
   updatedAt: string; // ISO string
 }
 
-export const teacherSchema = z.object({
+export const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
@@ -27,8 +27,8 @@ export const teacherSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type TeacherFormData = z.infer<typeof teacherSchema>;
+export type UserFormData = z.infer<typeof userSchema>;
 
-export interface UpdateTeacherRequest extends Partial<TeacherFormData> {
-  id: string;
+export interface UpdateUserRequest extends Partial<UserFormData> {
+  _id: string;
 }

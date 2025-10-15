@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '../ui/sonner';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -19,34 +19,21 @@ export const LoginForm = ({ onSuccess, onSwitchToSignup }: LoginFormProps) => {
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all fields',
-        variant: 'destructive',
-      });
+      toast.error('Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
       await login(email, password);
-      toast({
-        title: 'Success',
-        description: 'Logged in successfully!',
-      });
       onSuccess();
     } catch (error) {
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast.error(error.message || 'Login failed');
       }
     } finally {
       setLoading(false);

@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type CertificateDocument = Certificate & Document;
 @Schema({ timestamps: true })
-export class Certificate extends Document {
+export class Certificate {
   @Prop({ required: true })
   name: string;
 

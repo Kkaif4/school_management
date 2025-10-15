@@ -1,5 +1,5 @@
 import { UserPlus, X } from 'lucide-react';
-import AddTeacherForm from './TeacherForm';
+import AddUserForm from './UserForm';
 import { useSchoolStore } from '@/stores/schoolStore';
 
 interface AddTeacherModalProps {
@@ -49,7 +49,7 @@ export default function AddTeacherModal({
 
         {/* Body */}
         <div className="p-4 sm:p-6">
-          <AddTeacherForm
+          <AddUserForm
             schoolId={school._id}
             onSuccess={onSuccess}
             onCancel={onCancel}

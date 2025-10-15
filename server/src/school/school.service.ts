@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { User } from 'src/schema/user.schema';
 import { Model } from 'mongoose';
@@ -12,6 +8,11 @@ import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { SchoolResponseDto } from './dto/school-response.dto';
 import { SchoolAlreadyExistsException } from 'src/exceptions/already-exists.exception';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { AuthUser } from 'src/common/interfaces/user.interface';
+import { PaginatedData } from 'src/user/dto/user-response.dto';
+import { PaginationUtil } from 'src/utils/pagination.utils';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 export interface SchoolsArray {
   success: boolean;
@@ -26,6 +27,7 @@ export class SchoolService {
     private schoolModel: Model<School>,
     @InjectModel(User.name)
     private userModel: Model<User>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
   async create(
@@ -33,60 +35,56 @@ export class SchoolService {
     createSchoolDto: CreateSchoolDto,
   ): Promise<SchoolResponseDto> {
     const adminId = req['user'].id.toString();
-    try {
-      const admin = await this.userModel.findOne({
-        _id: adminId,
-      });
+    const admin = await this.userModel.findOne({
+      _id: adminId,
+    });
 
-      if (!admin) {
-        throw new NotFoundException('Admin user not found');
-      }
-      const existingSchool = await this.schoolModel.findOne({
-        $and: [
-          { name: createSchoolDto.name },
-          { name: createSchoolDto.name.toLowerCase() },
-          { adminId: adminId },
-        ],
-      });
-
-      if (existingSchool) {
-        throw new SchoolAlreadyExistsException(createSchoolDto.name);
-      }
-      const schoolData = { ...createSchoolDto, adminId };
-      const school = await new this.schoolModel(schoolData).save();
-      const response = {
-        success: true,
-        message: 'School created successfully',
-        data: school,
-      };
-      return response;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException('School name already exists');
-      }
-      throw error;
+    if (!admin) {
+      throw new NotFoundException('Admin user not found');
     }
+    const existingSchool = await this.schoolModel.findOne({
+      $and: [
+        { name: createSchoolDto.name },
+        { name: createSchoolDto.name.toLowerCase() },
+        { adminId: adminId },
+      ],
+    });
+
+    if (existingSchool) {
+      throw new SchoolAlreadyExistsException(createSchoolDto.name);
+    }
+    const schoolData = { ...createSchoolDto, adminId };
+    const school = await this.schoolModel.create(schoolData);
+    return this.findOne(school._id.toString());
   }
 
-  async findAllByUser(req: Request): Promise<SchoolsArray> {
-    const userId = req['user'].id.toString();
-    try {
-      const schools = await this.schoolModel.find({ adminId: userId });
-      if (!schools || schools.length === 0) {
-        throw new NotFoundException('School not found');
-      }
-      const response = {
-        success: true,
-        message: 'Schools found successfully',
-        data: schools,
-      };
-      return response;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException('Could not fetch schools');
-    }
+  async findAllByUser(
+    user: AuthUser,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedData<SchoolResponseDto>> {
+    const userId = user.id.toString();
+    const { page, limit } = PaginationUtil.validatePaginationParams(
+      query.page,
+      query.limit,
+    );
+
+    const [schools, total] = await Promise.all([
+      this.schoolModel.find({ adminId: userId }),
+      this.schoolModel.countDocuments({ adminId: userId }),
+    ]);
+    const meta = {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPreviousPage: page > 1,
+    };
+    return this.transformService.transformPaginatedResponse(
+      SchoolResponseDto,
+      schools,
+      meta,
+    );
   }
 
   async findOne(id: string): Promise<SchoolResponseDto> {
@@ -94,12 +92,7 @@ export class SchoolService {
     if (!school) {
       throw new NotFoundException('School not found');
     }
-    const response = {
-      success: true,
-      message: 'School found successfully',
-      data: school,
-    };
-    return response;
+    return this.transformService.transform(SchoolResponseDto, school);
   }
 
   async update(
@@ -115,20 +108,14 @@ export class SchoolService {
     if (!school) {
       throw new NotFoundException('School not found');
     }
-    const response = {
-      success: true,
-      message: 'School updated successfully',
-      data: school,
-    };
-
-    return response;
+    return this.findOne(school._id.toString());
   }
 
-  async remove(id: string): Promise<School> {
+  async remove(id: string): Promise<{ deleted: true }> {
     const school = await this.schoolModel.findByIdAndDelete(id);
     if (!school) {
       throw new NotFoundException('School not found');
     }
-    return school;
+    return { deleted: true };
   }
 }

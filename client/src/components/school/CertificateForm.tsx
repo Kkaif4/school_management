@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import api, { certificateAPI } from '@/lib/api';
+import { certificateAPI } from '@/lib/api';
 import { X } from 'lucide-react';
+import { useCertificateStore } from '@/stores/certificateStore';
 
 interface CertificateFormProps {
   schoolId: string;
@@ -16,14 +17,16 @@ export default function CertificateForm({
   const [title, setTitle] = useState('');
   const [templateCode, setTemplateCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { fetchCertificates } = useCertificateStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+
     if (!title.trim() || !templateCode.trim()) {
-      setError('Please provide both title and HTML code.');
+      setError('Please fill in all fields before submitting.');
       return;
     }
 
@@ -35,15 +38,18 @@ export default function CertificateForm({
         templateCode,
       });
       if (!response.data.success) {
-        setError(response.data.message);
+        setError(response?.data?.message || 'Failed to add certificate.');
         return;
       }
+      fetchCertificates(schoolId);
       onSuccess?.();
       onClose();
     } catch (err) {
       if (err) {
         setError(
-          err.message || 'Failed to save certificate. Please try again.'
+          err?.response?.data?.message ||
+            err?.message ||
+            'Unexpected error occurred. Please try again.'
         );
       }
     } finally {
@@ -138,7 +144,9 @@ export default function CertificateForm({
           </div>
 
           {error && (
-            <p className="text-sm sm:text-base text-red-600">{error}</p>
+            <div className="bg-red-50 border border-red-300 text-red-700 text-sm rounded-lg p-2 sm:p-3">
+              {error}
+            </div>
           )}
 
           {/* Actions */}

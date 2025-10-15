@@ -10,8 +10,7 @@ import { DataTable } from '../common/dataTable';
 import { Eye, Plus, Trash2, Upload, Users } from 'lucide-react';
 import WarningModal from '../ui/warning';
 import EntityHeader from '../common/CommonHeader';
-import { toast } from '@/hooks/use-toast';
-
+import { toast } from '@/components/ui/sonner';
 interface StudentsProps {
   schoolId: string;
 }
@@ -32,16 +31,20 @@ export default function Students({ schoolId }: StudentsProps) {
     setError(null);
     setLoading(true);
     try {
-      const response = await studentAPI.getStudent(schoolId);
+      const response = await studentAPI.getStudents(schoolId);
       setStudents(response.data.data);
+      toast('Students fetched successfully');
     } catch (err) {
-      if (err && err.response?.status === 404) {
+      if (err) {
         setStudents([]);
+        toast.error('No students found');
       } else {
+        toast.error(err.message);
         setError(err.message || 'Failed to fetch students');
       }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [schoolId]);
 
   useEffect(() => {
@@ -92,8 +95,9 @@ export default function Students({ schoolId }: StudentsProps) {
     if (!selectedStudent?._id) return;
 
     try {
-      await studentAPI.deleteStudent(selectedStudent._id);
-      fetchStudents(); // Refresh the list
+      const res = await studentAPI.deleteStudent(selectedStudent._id);
+      toast(res.data.message);
+      fetchStudents();
       setShowDeleteWarning(false);
       setSelectedStudent(null);
     } catch (error) {
@@ -137,20 +141,13 @@ export default function Students({ schoolId }: StudentsProps) {
 
         try {
           const response = await studentAPI.uploadCSV(formData);
-          toast({
-            title: 'Success!',
-            description: `${response.data.summary.saved} students uploaded successfully!`,
-            variant: 'default',
-          });
+          toast(response.data.message);
           fetchStudents();
         } catch (error) {
           if (error) {
-            toast({
-              title: 'Upload Failed',
-              description:
-                'Failed to upload students. Please check CSV format.',
-              variant: 'destructive',
-            });
+            toast.error(
+              error.response?.data?.message || 'Failed to upload CSV'
+            );
           }
         }
       },

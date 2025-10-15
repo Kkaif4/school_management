@@ -1,17 +1,17 @@
-import { X, User, FileText } from 'lucide-react';
-import type { Teacher } from '@/types/teacher';
+import { X, Users } from 'lucide-react';
+import type { User } from '@/types/users';
 
-interface TeacherDetailsProps {
-  teacher: Teacher;
+interface UserDetailsProps {
+  user: User;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function TeacherDetails({
-  teacher,
+export default function UserDetails({
+  user,
   isOpen,
   onClose,
-}: TeacherDetailsProps) {
+}: UserDetailsProps) {
   if (!isOpen) return null;
 
   return (
@@ -28,11 +28,11 @@ export default function TeacherDetails({
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white flex-shrink-0 rounded-t-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-lg">
-                  <User className="h-5 w-5" />
+                  <Users className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">{teacher.name}</h2>
-                  <p className="text-indigo-100 text-sm">Teacher Details</p>
+                  <h2 className="text-lg font-semibold">{user.name}</h2>
+                  <p className="text-indigo-100 text-sm">User Details</p>
                 </div>
               </div>
               <button
@@ -45,16 +45,16 @@ export default function TeacherDetails({
             {/* Main Content Body */}
             <div className="p-5 overflow-y-auto flex-1 grid grid-cols-1 gap-5">
               <Section
-                title="Teacher Information"
-                icon={<User className="h-5 w-5 text-indigo-600" />}>
+                title="User Information"
+                icon={<Users className="h-5 w-5 text-indigo-600" />}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                  <Info label="Name" value={teacher.name} />
-                  <Info label="Email" value={teacher.email} />
-                  <Info label="Role" value={teacher.role} />
+                  <Info label="Name" value={user.name} />
+                  <Info label="Email" value={user.email} />
+                  <Info label="Role" value={user.role} />
                   <Info
                     label="Active"
                     value={
-                      teacher.isActive ? (
+                      user.isActive ? (
                         <span
                           className={`text-xs px-2 py-0.5 rounded-full 
                               bg-green-100 text-green-800`}>
@@ -71,11 +71,11 @@ export default function TeacherDetails({
                   />
                   {/* <Info
                     label="Created At"
-                    value={formatDate(teacher.createdAt)}
+                    value={formatDate(user.createdAt)}
                   />
                   <Info
                     label="Updated At"
-                    value={formatDate(teacher.updatedAt)}
+                    value={formatDate(user.updatedAt)}
                   /> */}
                 </div>
               </Section>

@@ -5,6 +5,7 @@ import {
   Home,
   MapPin,
   Plus,
+  Trash,
   Users,
 } from 'lucide-react';
 import StatCard from '../StatCard';
@@ -12,41 +13,55 @@ import { useEffect, useState } from 'react';
 import { certificateAPI } from '@/lib/api';
 import { Button } from '../ui/button';
 import CertificateForm from './CertificateForm';
+import WarningModal from '../ui/warning';
+import { handleError } from '@/utils/handleError';
+import { useCertificateStore } from '@/stores/certificateStore';
 
 interface HomeContentProps {
   school: School;
 }
 
-interface Certificate {
-  _id: string;
-  name: string;
-  createdAt: string;
-}
-
 export default function HomeContent({ school }: HomeContentProps) {
   const [showCertificateForm, setShowCertificateForm] = useState(false);
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [loadingCerts, setLoadingCerts] = useState(false);
-  const [certError, setCertError] = useState<string | null>(null);
-
-  const fetchCertificates = async () => {
-    setLoadingCerts(true);
-    setCertError(null);
-    try {
-      const response = await certificateAPI.getCertificates(school._id);
-      setCertificates(response.data || []);
-    } catch (err) {
-      if (err) {
-        setCertError(err.message || 'Failed to fetch certificates');
-      }
-    } finally {
-      setLoadingCerts(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const { certificates, fetchCertificates, loading, error } =
+    useCertificateStore();
 
   useEffect(() => {
-    fetchCertificates();
-  }, [school._id, fetchCertificates]);
+    if (school?._id) {
+      fetchCertificates(school._id);
+    }
+  }, [school?._id, fetchCertificates]);
+
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  // Function to close the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      // 1. Make the API call to delete the item
+      const response = await certificateAPI.deleteCertificate(itemToDelete);
+      if (!response.data.success) {
+        const errorData = await response.data.error();
+        throw new Error(errorData.message || 'Failed to delete the item.');
+      }
+      fetchCertificates(school._id);
+    } catch (error) {
+      handleError(error.response.data.message);
+    } finally {
+      handleCloseModal();
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -167,10 +182,10 @@ export default function HomeContent({ school }: HomeContentProps) {
             Certificates
           </h3>
 
-          {loadingCerts ? (
+          {loading ? (
             <p className="text-gray-500 text-sm">Loading certificates...</p>
-          ) : certError ? (
-            <p className="text-red-600 text-sm">{certError}</p>
+          ) : error ? (
+            <p className="text-red-600 text-sm">{error}</p>
           ) : certificates.length === 0 ? (
             <p className="text-gray-500 text-sm">No certificates added yet.</p>
           ) : (
@@ -179,15 +194,26 @@ export default function HomeContent({ school }: HomeContentProps) {
                 <li
                   key={cert._id}
                   className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  {/* Left side: Icon and Name */}
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-indigo-600" />
-                    <span className="text-sm sm:text-base font-medium text-gray-900">
+                    <span className="text-sm sm:text-base font-medium text-gray-900 truncate pr-2">
                       {cert.name}
                     </span>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500">
-                    {formatDate(cert.createdAt)}
-                  </span>
+
+                  {/* Right side: Date and Delete Button */}
+                  <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+                    <span className="text-xs sm:text-sm text-gray-500">
+                      {formatDate(cert.createdAt)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(cert._id)}>
+                      <Trash className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -201,6 +227,13 @@ export default function HomeContent({ school }: HomeContentProps) {
             </Button>
           </div>
         </div>
+        <WarningModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onConfirm={handleConfirmDelete}
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the certificate? This action cannot be undone.`}
+        />
 
         {/* Certificate Modal */}
         {showCertificateForm && (
@@ -209,7 +242,6 @@ export default function HomeContent({ school }: HomeContentProps) {
             onClose={() => setShowCertificateForm(false)}
             onSuccess={() => {
               setShowCertificateForm(false);
-              fetchCertificates(); // Refresh list after adding
             }}
           />
         )}

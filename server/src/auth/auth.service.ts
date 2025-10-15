@@ -5,8 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/schema/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
+import { JwtPayload } from 'src/common/interfaces/user.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,10 +16,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     const user = await this.userModel.findOne({ email }).select('+password');
-
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -29,26 +28,30 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { id: user._id };
+    const payload: JwtPayload = {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      schoolId: user.schoolId?.toString() || '',
+    };
     const token = this.jwtService.sign(payload);
 
     const response = {
-      success: true,
       message: `${user.role} logged in successfully`,
       token: token,
       user: {
-        id: user._id,
+        id: user._id.toString() || user.id.toString(),
         email: user.email,
         role: user.role,
         name: user.name,
-        schoolId: user.schoolId,
+        schoolId: user.schoolId?.toString(),
       },
     };
 
     return response;
   }
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(registerDto: RegisterDto) {
     const { email } = registerDto;
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
@@ -56,15 +59,19 @@ export class AuthService {
     }
     const user = await this.userModel.create(registerDto);
 
-    const payload = { id: user._id };
+    const payload: JwtPayload = {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      schoolId: user.schoolId?.toString(),
+    };
     const token = this.jwtService.sign(payload);
 
     const response = {
-      success: true,
       message: `User registered successfully`,
       token: token,
       user: {
-        id: user._id,
+        id: user._id || user.id,
         email: user.email,
         role: user.role,
         name: user.name,

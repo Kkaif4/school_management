@@ -1,22 +1,22 @@
 import { z } from 'zod';
 
-export type CustomField = {
-  name: string;
-  type: 'string' | 'number' | 'date' | 'boolean';
-  required: boolean;
+export type customField = {
+  name?: string;
+  type?: 'string' | 'number' | 'date' | 'boolean';
+  required?: boolean;
 };
 export interface School {
   _id: string;
   name: string;
-  address: string;
-  principalName: string;
-  totalStudents: number;
-  totalTeachers: number;
-  status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
-  createdAt: string;
-  updatedAt: string;
+  address?: string;
+  principalName?: string;
+  totalStudents?: number;
+  totalTeachers?: number;
+  status?: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+  createdAt?: string;
+  updatedAt?: string;
   contactNumber: string;
-  studentFields: CustomField[];
+  studentFields?: customField[];
 }
 
 export const createSchoolSchema = z.object({

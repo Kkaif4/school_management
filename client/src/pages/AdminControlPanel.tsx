@@ -28,15 +28,14 @@ import {
 import { CreateSchoolModal } from '@/components/admin/CreateSchoolModal';
 import { schoolAPI } from '@/lib/api';
 import { School as SchoolType } from '@/types/school';
-import { useToast } from '@/hooks/use-toast';
 import { WelcomeBanner } from '@/components/WelcomeBanner';
 import { useNavigate } from 'react-router-dom';
 import { ProfileCard } from './ProfileCard';
+import { toast } from '@/components/ui/sonner';
 
 const AdminControlPanel = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toast } = useToast();
   const [schools, setSchools] = useState<SchoolType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -46,17 +45,10 @@ const AdminControlPanel = () => {
     try {
       setIsLoading(true);
       const response = await schoolAPI.getSchools();
-      setSchools(response.data.data || []);
+      setSchools(response.data.data);
+      toast('Schools fetched successfully');
     } catch (error) {
-      if (error && error.response?.status === 404) {
-        setSchools([]);
-        return;
-      }
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to load schools',
-        variant: 'destructive',
-      });
+      toast.error(error.response.data.message || 'Failed to fetch schools');
     } finally {
       setIsLoading(false);
     }
@@ -82,24 +74,13 @@ const AdminControlPanel = () => {
 
     try {
       await schoolAPI.deleteSchool(schoolId);
-      toast({
-        title: 'Success',
-        description: 'School deleted successfully',
-      });
+      toast('School deleted successfully');
       fetchSchools();
     } catch (error) {
       if (error && error.status === 404) {
-        toast({
-          title: 'Not Found',
-          description: 'School not found or already deleted',
-          variant: 'destructive',
-        });
+        toast.error('School not found');
       } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete school',
-          variant: 'destructive',
-        });
+        toast.error('Failed to delete school');
       }
     }
   };

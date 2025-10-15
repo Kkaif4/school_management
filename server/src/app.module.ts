@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { SchoolModule } from './school/school.module';
 import { AppController } from './app.controller';
 import { Module, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CertificateModule } from './certificate/certificate.module';
 import { StudentModule } from './student/student.module';
@@ -15,7 +15,13 @@ import { StudentModule } from './student/student.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGO_URI || ''),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI_PROD'),
+      }),
+      inject: [ConfigService],
+    }),
     AuthModule,
     UserModule,
     SchoolModule,

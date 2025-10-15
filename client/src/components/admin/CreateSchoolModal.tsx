@@ -22,14 +22,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { schoolAPI } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
-import { createSchoolSchema, CustomField } from '@/types/school';
+import { createSchoolSchema, customField } from '@/types/school';
 import { DefaultFieldsInfoDialog } from '@/components/school/DefaultFieldsInfoDialog';
 import { Info, X } from 'lucide-react';
 import { RequiredLabel } from '../ui/RequiredLabel';
+import { toast as sonnerToast } from '../ui/sonner';
+import { toast } from '@/hooks/use-toast';
 export type CreateSchoolFormData = z.infer<typeof createSchoolSchema> & {
   _id?: string;
-  studentFields?: CustomField[];
+  studentFields?: customField[];
 };
 
 interface CreateSchoolModalProps {
@@ -49,10 +50,9 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
   schoolToEdit,
   isEditing = false,
 }) => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [enableCustomFields, setEnableCustomFields] = useState(false);
-  const [studentFields, setCustomFields] = useState<CustomField[]>([]);
+  const [studentFields, setCustomFields] = useState<customField[]>([]);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
 
   const form = useForm<CreateSchoolFormData>({
@@ -95,10 +95,10 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
     setCustomFields(studentFields.filter((_, i) => i !== index));
   };
 
-  const handleFieldChange = <K extends keyof CustomField>(
+  const handleFieldChange = <K extends keyof customField>(
     index: number,
     key: K,
-    value: CustomField[K]
+    value: customField[K]
   ) => {
     setCustomFields((prev) => {
       const updated = [...prev];
@@ -118,22 +118,18 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
       };
 
       if (isEditing && schoolToEdit?._id) {
-        await schoolAPI.updateSchool(schoolToEdit._id, payload);
-        toast({ title: 'Success', description: 'School updated successfully' });
+        const res = await schoolAPI.updateSchool(schoolToEdit._id, payload);
+        sonnerToast(res.data.message);
       } else {
-        await schoolAPI.createSchool(payload);
-        toast({ title: 'Success', description: 'School created successfully' });
+        const res = await schoolAPI.createSchool(payload);
+        sonnerToast(res.data.message);
       }
 
       onSchoolCreated();
       handleClose();
     } catch (error) {
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.response?.data?.message || 'Something went wrong',
-          variant: 'destructive',
-        });
+        sonnerToast(error.res.data.message);
       }
     } finally {
       setIsSubmitting(false);
@@ -306,7 +302,7 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
                             handleFieldChange(
                               index,
                               'type',
-                              e.target.value as CustomField['type']
+                              e.target.value as customField['type']
                             )
                           }>
                           <option value="string">String</option>

@@ -18,6 +18,11 @@ export const Divisions = [
   'I',
   '',
 ] as const;
+
+export interface CustomFields {
+  [key: string]: any;
+}
+
 export interface Student {
   _id: string;
   studentId: string;
@@ -30,11 +35,18 @@ export interface Student {
   rollNumber: number;
   grade: number; // 1–12
   division: (typeof Divisions)[number];
-  customFields?: { key: string; value: string }[];
+  customFields?: CustomFields;
   schoolId: string;
   createdAt: string;
   updatedAt: string;
 }
+
+const CustomFieldValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.null(),
+]);
 
 export const studentSchema = z.object({
   studentId: z.string().min(1, 'Student ID is required'),
@@ -61,9 +73,7 @@ export const studentSchema = z.object({
   schoolId: z.string().min(1, 'School ID is required'),
 
   // Accept object instead of array
-  customFields: z
-    .record(z.string().min(1, 'Field value is required'))
-    .optional(),
+  customFields: z.record(CustomFieldValueSchema).optional(),
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;

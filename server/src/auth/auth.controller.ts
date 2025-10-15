@@ -11,6 +11,7 @@ import {
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { Console } from 'console';
+import { ApiOkResponseWrapper } from 'src/common/decorators/api-response.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -20,9 +21,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login a user' })
   @ApiBody({ type: LoginDto })
-  @ApiResponse({ status: 200, description: 'User logged in successfully.' })
-  @ApiResponse({ status: 400, description: 'Validation failed.' })
-  login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+  @ApiOkResponseWrapper(AuthResponseDto, 'Login successful')
+  login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
@@ -35,7 +35,7 @@ export class AuthController {
     description: 'Validation failed.',
     type: AuthResponseDto,
   })
-  register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+  register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 

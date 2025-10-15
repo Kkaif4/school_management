@@ -1,0 +1,329 @@
+import { applyDecorators, Type } from '@nestjs/common';
+import {
+  ApiOkResponse,
+  ApiExtraModels,
+  getSchemaPath,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
+  ApiUnprocessableEntityResponse,
+  ApiInternalServerErrorResponse,
+} from '@nestjs/swagger';
+import { SetMetadata } from '@nestjs/common';
+import { ErrorResponseDto } from '../filters/all-exception.filter';
+
+export const API_MESSAGE_KEY = 'api:message';
+
+export const ApiMessage = (message: string) =>
+  SetMetadata(API_MESSAGE_KEY, message);
+
+export function ApiOkResponseWrapper(
+  model?: Type<unknown>,
+  message = 'Success',
+) {
+  return applyDecorators(
+    ApiMessage(message),
+    ...(model ? [ApiExtraModels(model)] : []),
+    ApiOkResponse({
+      description: message,
+      schema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          statusCode: { type: 'number', example: 200 },
+          message: { type: 'string', example: message },
+          path: { type: 'string' },
+          timestamp: { type: 'string' },
+          data: model
+            ? { $ref: getSchemaPath(model) }
+            : { type: 'object', example: {} },
+        },
+      },
+    }),
+    ApiCommonErrorsWithDto(),
+  );
+}
+
+export function ApiPaginatedResponse(
+  model?: Type<unknown>,
+  message = 'Success',
+) {
+  return applyDecorators(
+    ApiMessage(message),
+    ...(model ? [ApiExtraModels(model)] : []),
+    ApiOkResponse({
+      description: message,
+      schema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          statusCode: { type: 'number', example: 200 },
+          message: { type: 'string', example: message },
+          timestamp: { type: 'string' },
+          path: { type: 'string' },
+          data: {
+            type: 'array',
+            items: model ? { $ref: getSchemaPath(model) } : { type: 'object' },
+          },
+          meta: {
+            type: 'object',
+            properties: {
+              total: { type: 'number', example: 100 },
+              page: { type: 'number', example: 1 },
+              limit: { type: 'number', example: 10 },
+              hasNextPage: { type: 'boolean', example: true },
+              hasPreviousPage: { type: 'boolean', example: false },
+            },
+          },
+        },
+      },
+    }),
+    ApiCommonErrorsWithDto(),
+  );
+}
+
+// Additional response decorators
+export function ApiCreatedResponseWrapper(
+  model?: Type<unknown>,
+  message = 'Created successfully',
+) {
+  return applyDecorators(
+    ApiMessage(message),
+    ...(model ? [ApiExtraModels(model)] : []),
+    ApiOkResponse({
+      description: message,
+      schema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          statusCode: { type: 'number', example: 201 },
+          message: { type: 'string', example: message },
+          path: { type: 'string' },
+          timestamp: { type: 'string' },
+          data: model
+            ? { $ref: getSchemaPath(model) }
+            : { type: 'object', example: {} },
+        },
+      },
+    }),
+    ApiCommonErrorsWithDto(),
+  );
+}
+
+export function ApiDeletedResponseWrapper(message = 'Deleted successfully') {
+  return applyDecorators(
+    ApiMessage(message),
+    ApiOkResponse({
+      description: message,
+      schema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          statusCode: { type: 'number', example: 200 },
+          message: { type: 'string', example: message },
+          path: { type: 'string' },
+          timestamp: { type: 'string' },
+          data: { type: 'object', example: null },
+        },
+      },
+    }),
+    ApiCommonErrorsWithDto(),
+  );
+}
+
+// Response decorator with custom message only
+export function ApiResponseMessage(message: string) {
+  return ApiMessage(message);
+}
+
+/**
+ * Standard API error response decorator using ErrorResponseDto class directly.
+ * This function provides comprehensive error response documentation with multiple example scenarios
+ * for each error type, ensuring consistency with the actual error responses from AllExceptionsFilter.
+ *
+ * This is the recommended and standard approach for all error documentation in the application.
+ *
+ * Includes error responses for:
+ * - 400 Bad Request (validation errors, bad request data)
+ * - 401 Unauthorized (authentication required)
+ * - 403 Forbidden (insufficient permissions)
+ * - 404 Not Found (resource not found)
+ * - 409 Conflict (duplicate resources, version conflicts)
+ * - 422 Unprocessable Entity (business logic validation failures)
+ * - 500 Internal Server Error (server errors, database errors)
+ *
+ * Each error response uses the ErrorResponseDto class which ensures consistency
+ * with the actual error responses generated by the AllExceptionsFilter.
+ *
+ * @example
+ * ```typescript
+ * @Controller('users')
+ * export class UserController {
+ *   @Get(':id')
+ *   @ApiCommonErrorsWithDto()
+ *   async findOne(@Param('id') id: string) {
+ *     // Method implementation
+ *   }
+ * }
+ * ```
+ *
+ * @example Using with other decorators
+ * ```typescript
+ * @Controller('users')
+ * export class UserController {
+ *   @Post()
+ *   @ApiCreatedResponseWrapper(UserResponseDto, 'User created successfully')
+ *   @ApiCommonErrorsWithDto()
+ *   async create(@Body() createUserDto: CreateUserDto) {
+ *     // Method implementation
+ *   }
+ * }
+ * ```
+ *
+ * @returns {MethodDecorator} Combined decorator for common error responses using ErrorResponseDto
+ */
+export function ApiCommonErrorsWithDto() {
+  return applyDecorators(
+    ApiExtraModels(ErrorResponseDto),
+    ApiBadRequestResponse({
+      description: 'Bad Request - Validation errors or invalid data',
+      type: ErrorResponseDto,
+      examples: {
+        validationError: {
+          summary: 'Validation Error',
+          value: {
+            success: false,
+            statusCode: 400,
+            path: '/api/users',
+            message: 'Validation failed',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            validationErrors: [
+              'email must be a valid email',
+              'password is too short',
+            ],
+            errorCode: 'VALIDATION_ERROR',
+          },
+        },
+        badRequest: {
+          summary: 'Bad Request',
+          value: {
+            success: false,
+            statusCode: 400,
+            path: '/api/users',
+            message: 'Invalid request data',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            errorCode: 'BAD_REQUEST',
+          },
+        },
+      },
+    }),
+    ApiUnauthorizedResponse({
+      description: 'Unauthorized - Authentication required',
+      type: ErrorResponseDto,
+      example: {
+        success: false,
+        statusCode: 401,
+        path: '/api/users',
+        message: 'Authentication failed',
+        timestamp: '2025-01-20T14:30:45.000Z',
+        errorCode: 'UNAUTHORIZED',
+      },
+    }),
+    ApiForbiddenResponse({
+      description: 'Forbidden - Insufficient permissions',
+      type: ErrorResponseDto,
+      example: {
+        success: false,
+        statusCode: 403,
+        path: '/api/users',
+        message: 'Access denied',
+        timestamp: '2025-01-20T14:30:45.000Z',
+        errorCode: 'FORBIDDEN',
+      },
+    }),
+    ApiNotFoundResponse({
+      description: 'Not Found - Resource does not exist',
+      type: ErrorResponseDto,
+      example: {
+        success: false,
+        statusCode: 404,
+        path: '/api/users/123',
+        message: 'User not found',
+        timestamp: '2025-01-20T14:30:45.000Z',
+        errorCode: 'NOT_FOUND',
+      },
+    }),
+    ApiConflictResponse({
+      description: 'Conflict - Duplicate resource or version conflict',
+      type: ErrorResponseDto,
+      examples: {
+        duplicateKey: {
+          summary: 'Duplicate Key Error',
+          value: {
+            success: false,
+            statusCode: 409,
+            path: '/api/users',
+            message: 'Duplicate value for field: email',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            errorCode: 'DUPLICATE_KEY',
+          },
+        },
+        versionConflict: {
+          summary: 'Version Conflict',
+          value: {
+            success: false,
+            statusCode: 409,
+            path: '/api/users/123',
+            message:
+              'Document version conflict - document was modified by another process',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            errorCode: 'VERSION_CONFLICT',
+          },
+        },
+      },
+    }),
+    ApiUnprocessableEntityResponse({
+      description: 'Unprocessable Entity - Business logic validation failed',
+      type: ErrorResponseDto,
+      example: {
+        success: false,
+        statusCode: 422,
+        path: '/api/users',
+        message: 'Document failed validation',
+        timestamp: '2025-01-20T14:30:45.000Z',
+        validationErrors: ['Document failed validation'],
+        errorCode: 'DOCUMENT_VALIDATION_FAILURE',
+      },
+    }),
+    ApiInternalServerErrorResponse({
+      description: 'Internal Server Error - Unexpected server error',
+      type: ErrorResponseDto,
+      examples: {
+        serverError: {
+          summary: 'Internal Server Error',
+          value: {
+            success: false,
+            statusCode: 500,
+            path: '/api/users',
+            message: 'Internal server error',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            errorCode: 'INTERNAL_SERVER_ERROR',
+          },
+        },
+        mongoError: {
+          summary: 'Database Error',
+          value: {
+            success: false,
+            statusCode: 500,
+            path: '/api/users',
+            message: 'Database operation failed',
+            timestamp: '2025-01-20T14:30:45.000Z',
+            errorCode: 'MONGODB_ERROR',
+          },
+        },
+      },
+    }),
+  );
+}

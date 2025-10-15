@@ -30,7 +30,7 @@ export default function StudentDetails({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40" // a slightly stronger blur looks nice
+        className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40"
         onClick={onClose}
       />
 
@@ -41,7 +41,6 @@ export default function StudentDetails({
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white flex-shrink-0 rounded-t-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {' '}
-                {/* Increased gap slightly */}
                 <div className="bg-white/20 p-1.5 rounded-lg">
                   <User className="h-5 w-5" />
                 </div>
@@ -64,8 +63,6 @@ export default function StudentDetails({
             {/* Main Content Body */}
             <div className="p-5 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
               {' '}
-              {/* Changed to lg: and increased gap */}
-              {/* This div wraps all student info sections */}
               <div className="flex flex-col gap-5">
                 {/* Student Information */}
                 <Section
@@ -93,7 +90,6 @@ export default function StudentDetails({
                   </div>
                 </Section>
               </div>
-              {/* This div wraps additional info and other potential right-side content */}
               <div className="flex flex-col gap-5">
                 {/* Custom Fields */}
                 {student.customFields &&
@@ -101,7 +97,6 @@ export default function StudentDetails({
                     <Section
                       title="Additional Information"
                       icon={<FileText className="h-5 w-5 text-gray-600" />}>
-                      {/* FIX 2: More columns for additional info to use space better */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                         {Object.entries(student.customFields).map(
                           ([key, value], idx) => (
@@ -140,7 +135,6 @@ function Section({
   children: React.ReactNode;
   className?: string;
 }) {
-  // Removed space-y from here, grid gap on the child is better
   return (
     <div className={`bg-gray-50/70 rounded-xl p-4 sm:p-5 ${className || ''}`}>
       <h3 className="text-md sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -175,7 +169,6 @@ function Info({
   label: string;
   value: string | boolean | number;
 }) {
-  // FIX 1: Changed layout from justify-between to a more controlled flex layout
   return (
     <div className="flex items-start text-sm">
       <span className="w-2/5 text-gray-500">{label}:</span>

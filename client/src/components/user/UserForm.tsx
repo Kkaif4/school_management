@@ -1,25 +1,26 @@
 import { useState } from 'react';
 import { EyeOff, Eye, Save, X } from 'lucide-react';
-import { TeacherFormData, UserRole } from '@/types/teacher';
-import { teacherAPI } from '@/lib/api';
-import { teacherSchema } from '@/types/teacher';
+import { UserFormData, UserRole } from '@/types/users';
+import { userAPI } from '@/lib/api';
+import { userSchema } from '@/types/users';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/sonner';
 
-interface AddTeacherFormProps {
+interface AddUserFormProps {
   schoolId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export default function AddTeacherForm({
+export default function AddUserForm({
   schoolId,
   onSuccess,
   onCancel,
-}: AddTeacherFormProps) {
-  const [formData, setFormData] = useState<TeacherFormData>({
+}: AddUserFormProps) {
+  const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
     password: '',
@@ -40,7 +41,7 @@ export default function AddTeacherForm({
     e.preventDefault();
     setErrors({});
 
-    const result = teacherSchema.safeParse(formData);
+    const result = userSchema.safeParse(formData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -49,23 +50,26 @@ export default function AddTeacherForm({
           fieldErrors[issue.path[0].toString()] = issue.message;
         }
       });
+      toast.error(result.error.message);
       setErrors(fieldErrors);
       return;
     }
 
     try {
       setLoading(true);
-      const response = await teacherAPI.createTeacher(result.data);
+      const response = await userAPI.createUser(result.data);
       if (!response.data.success) {
+        toast.error(response.data.message);
         setErrors({ submit: response.data.message });
         return;
       }
+      toast(response.data.message);
       onSuccess();
     } catch (err) {
-      if (err instanceof Error) {
+      if (err) {
         setErrors({ submit: err.message });
       } else {
-        setErrors({ submit: 'Failed to add teacher. Please try again.' });
+        setErrors({ submit: 'Failed to add user. Please try again.' });
       }
     } finally {
       setTimeout(() => {
@@ -94,7 +98,7 @@ export default function AddTeacherForm({
           Add Teacher
         </h2>
         <p className="text-muted-foreground text-xs sm:text-sm">
-          Fill out the details to onboard a new teacher
+          Fill out the details to onboard a new user
         </p>
       </div>
 

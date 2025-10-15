@@ -1,73 +1,71 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Teacher } from '@/types/teacher';
-import { teacherAPI } from '@/lib/api';
+import { User } from '@/types/users';
+import { userAPI } from '@/lib/api';
 import { DataTable } from '../common/dataTable';
-import { Eye, Plus, Trash2, Upload, Users } from 'lucide-react';
+import { Eye, Plus, Trash2, Users } from 'lucide-react';
 import WarningModal from '../ui/warning';
 import EmptyState from '../common/EmptyState';
-import AddTeacherModal from './AddTeacherModel';
+import AddUserModal from './AddUserModel';
 import EntityHeader from '../common/CommonHeader';
-import { toast } from '@/hooks/use-toast';
 import Filters from '../common/Filters';
-import TeacherDetails from './TeacherDetails';
+import UserDetails from './UserDetails';
+import { toast } from '@/components/ui/sonner';
 
-interface TeachersProps {
+interface UserProps {
   schoolId: string;
 }
 
-export default function Teachers({ schoolId }: TeachersProps) {
+export default function UsersPage({ schoolId }: UserProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
 
-  // Fetch teachers
-  const fetchTeachers = useCallback(async () => {
+  // Fetch users
+  const fetchUsers = useCallback(async () => {
     setError(null);
     setLoading(true);
     try {
-      const response = await teacherAPI.getTeachers(schoolId);
-      setTeachers(response.data.data || response.data);
+      const response = await userAPI.getUsers(schoolId);
+      setUsers(response.data.data);
+      toast('Users fetched successfully');
     } catch (err) {
       if (err) {
-        if (err.response?.status === 404) {
-          setTeachers([]);
-        } else {
-          setError(err.message || 'Failed to fetch teachers');
-        }
+        setError(err.message || 'Failed to fetch users');
+        toast.error(err.message || 'Failed to fetch users');
       }
     }
     setLoading(false);
   }, [schoolId]);
 
   useEffect(() => {
-    fetchTeachers();
-  }, [fetchTeachers]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   // Filtering
-  const filteredTeachers = useMemo(() => {
-    return teachers.filter(
-      (teacher) =>
-        teacher.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [teachers, searchTerm]);
+  }, [users, searchTerm]);
 
   // Delete logic
-  const handleDeleteTeacher = (teacher: Teacher) => {
-    setSelectedTeacher(teacher);
+  const handleDeleteUser = (user: User) => {
+    setSelectedUser(user);
     setShowDeleteWarning(true);
   };
 
-  const handleTeacherClick = (teacher: Teacher) => {
-    setSelectedTeacher(teacher);
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
     setIsDetailsOpen(true);
   };
 
@@ -80,15 +78,16 @@ export default function Teachers({ schoolId }: TeachersProps) {
   };
 
   const confirmDelete = async () => {
-    if (!selectedTeacher?._id) return;
+    if (!selectedUser?._id) return;
     try {
-      await teacherAPI.deleteTeacher(selectedTeacher._id);
-      fetchTeachers();
+      await userAPI.deleteUser(selectedUser._id);
+      fetchUsers();
+      toast('User deleted successfully');
       setShowDeleteWarning(false);
-      setSelectedTeacher(null);
+      setSelectedUser(null);
     } catch (error) {
       if (error) {
-        toast(error.response?.data?.message || 'Failed to delete teacher');
+        toast(error.response?.data?.message || 'Failed to delete user');
       }
     }
   };
@@ -105,7 +104,7 @@ export default function Teachers({ schoolId }: TeachersProps) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <div className="text-red-500 bg-red-50 p-4 rounded-lg border border-red-200 max-w-md text-center">
-          <p className="font-medium">Error loading teachers</p>
+          <p className="font-medium">Error loading users</p>
           <p className="text-sm mt-1">{error}</p>
         </div>
       </div>
@@ -114,7 +113,7 @@ export default function Teachers({ schoolId }: TeachersProps) {
 
   const getHeaderActions = () => [
     {
-      label: 'Add Teacher',
+      label: 'Add User',
       icon: Plus,
       variant: 'primary' as const,
       onClick: () => setIsFormOpen(true),
@@ -125,8 +124,8 @@ export default function Teachers({ schoolId }: TeachersProps) {
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
       {/* Header */}
       <EntityHeader
-        title="Teachers"
-        description="Manage teacher information"
+        title="Users"
+        description="Manage user information"
         icon={Users}
         actions={getHeaderActions()}
       />
@@ -139,49 +138,49 @@ export default function Teachers({ schoolId }: TeachersProps) {
         />
       </div>
 
-      {/* Teachers List or Empty State */}
+      {/* Users List or Empty State */}
       <DataTable
-        data={filteredTeachers}
+        data={filteredUsers}
         actions={[
           {
             label: 'Details',
             icon: <Eye />,
-            onClick: handleTeacherClick,
+            onClick: handleUserClick,
           },
           {
             label: 'Delete',
             icon: <Trash2 />,
             variant: 'destructive',
-            onClick: handleDeleteTeacher,
+            onClick: handleDeleteUser,
           },
         ]}
         loading={loading}
         emptyState={
           <EmptyState
-            hasData={teachers.length > 0}
-            entityName="teacher"
+            hasData={users.length > 0}
+            entityName="user"
             icon={<Users className="h-full w-full" />}
             onAdd={() => setIsFormOpen(true)}
           />
         }
       />
 
-      {selectedTeacher && (
-        <TeacherDetails
-          teacher={selectedTeacher}
+      {selectedUser && (
+        <UserDetails
+          user={selectedUser}
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
         />
       )}
 
-      {/* Add Teacher Modal */}
-      <AddTeacherModal
+      {/* Add User Modal */}
+      <AddUserModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         schoolId={schoolId}
         onSuccess={() => {
           setIsFormOpen(false);
-          fetchTeachers();
+          fetchUsers();
         }}
         onCancel={() => setIsFormOpen(false)}
       />
@@ -191,11 +190,11 @@ export default function Teachers({ schoolId }: TeachersProps) {
         isOpen={showDeleteWarning}
         onClose={() => {
           setShowDeleteWarning(false);
-          setSelectedTeacher(null);
+          setSelectedUser(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Teacher"
-        message={`Are you sure you want to delete ${selectedTeacher?.name}? This action cannot be undone.`}
+        title="Delete User"
+        message={`Are you sure you want to delete ${selectedUser?.name}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
       />

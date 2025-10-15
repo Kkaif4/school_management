@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsStrictBoolean } from 'src/decorators/boolean.decorator';
+import { IsStrictBoolean } from 'src/common/decorators/boolean.decorator';
 
 export class FieldDefinitionDto {
   @ApiProperty({

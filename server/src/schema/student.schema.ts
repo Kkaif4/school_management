@@ -20,8 +20,10 @@ export enum Divisions {
   I = 'I',
 }
 
+export type StudentDocument = Student & Document;
+
 @Schema({ timestamps: true })
-export class Student extends Document {
+export class Student {
   @Prop({ required: true, unique: true })
   studentId: string;
 
@@ -53,11 +55,10 @@ export class Student extends Document {
   grade: number;
 
   @Prop({ type: Map, of: mongoose.Schema.Types.Mixed, default: {} })
-  customFields: Map<string, any>;
+  customFields: Record<string, any>;
 
   @Prop({ type: Types.ObjectId, ref: School.name, required: true, index: true })
   schoolId: Types.ObjectId;
 }
 
-export type StudentDocument = Student & Document;
 export const StudentSchema = SchemaFactory.createForClass(Student);

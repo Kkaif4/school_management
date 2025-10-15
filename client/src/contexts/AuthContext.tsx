@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { authAPI } from '../lib/api';
 
-import { UserRole } from '@/types/teacher';
+import { UserRole } from '@/types/users';
 import { useToast } from '@/hooks/use-toast';
 
 export interface User {
@@ -64,17 +64,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data } = await authAPI.login(email, password);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
+      const res = await authAPI.login(email, password);
+      const token = res.data.data.token;
+      const user = res.data.data.user;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      toast(res.data.data.message);
     } catch (error) {
-      toast({
-        title: 'Login Failed',
-        description: 'Invalid email or password.',
-        variant: 'destructive',
-      });
-      throw new Error('Login failed');
+      throw new Error(error.message || 'Login failed');
     }
   };
 
@@ -84,14 +82,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { token, user: userData } = data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
+      toast(data.message);
       setUser(userData);
     } catch (error) {
       if (error) {
-        toast({
-          title: 'Signup Failed',
-          description: 'Could not complete registration. Please try again.',
-          variant: 'destructive',
-        });
+        toast.error(error.response?.data?.message || 'Signup failed');
         throw new Error('Signup failed');
       }
     }

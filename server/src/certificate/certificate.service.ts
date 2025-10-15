@@ -12,6 +12,9 @@ import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { Student } from 'src/schema/student.schema';
 import { School } from 'src/schema/school.schema';
 import { Log } from 'src/schema/log.schema';
+import { AuthUser } from 'src/common/interfaces/user.interface';
+import { CertificateResponseDto } from './dto/certificate-response.dto';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 @Injectable()
 export class CertificateService {
@@ -23,48 +26,48 @@ export class CertificateService {
     @InjectModel(School.name)
     private readonly schoolModel: Model<School>,
     @InjectModel(Log.name) private readonly logService: Model<Log>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
-  async create(createCertificateDto: CreateCertificateDto) {
-    await this.certificateModel.create(createCertificateDto);
-    const result = {
-      success: true,
-      message: 'Certificate template created successfully',
-    };
-    return result;
+  async create(
+    createCertificateDto: CreateCertificateDto,
+  ): Promise<CertificateResponseDto> {
+    const certificate =
+      await this.certificateModel.create(createCertificateDto);
+    return this.findOne(certificate._id.toString());
+  }
+
+  async findOne(id: string): Promise<CertificateResponseDto> {
+    const certificate = await this.certificateModel.findById({ _id: id });
+    if (!certificate) {
+      throw new NotFoundException('Certificate not found');
+    }
+    return this.transformService.transform(CertificateResponseDto, certificate);
   }
 
   async generateCertificate(
-    data: {
-      schoolId: string;
-      studentId: string;
-      certificateId: string;
-    },
-    req: Request,
+    data: { schoolId: string; studentId: string; certificateId: string },
+    user: AuthUser,
   ) {
     try {
       const student = await this.studentModel.findById({ _id: data.studentId });
       if (!student) {
         throw new NotFoundException('Student not found');
       }
+
       const certificate = await this.certificateModel.findOne({
         _id: data.certificateId,
       });
 
-      const school = await this.schoolModel.findOne({ _id: data.schoolId });
-
-      if (!school) {
-        throw new NotFoundException('School not found for the student');
-      }
       if (!certificate) {
         throw new NotFoundException('Certificate template not found');
       }
 
-      let cleanTemplateCode = certificate.templateCode.replace(/\\n/g, '');
+      // Clean template and compile
+      const cleanTemplateCode = certificate.templateCode.replace(/\\n/g, '');
       const template = Handlebars.compile(cleanTemplateCode);
-
-      const customFieldsObj = Object.fromEntries(student.customFields);
-      const newCertificate = template({
+      // Prepare replacements for Handlebars
+      const replacements: Record<string, any> = {
         studentId: student.studentId,
         registrationNumber: student.registrationNumber,
         firstName: student.firstName,
@@ -75,27 +78,28 @@ export class CertificateService {
         grade: student.grade,
         division: student.division,
         rollNumber: student.rollNumber,
+        ...student.customFields,
+      };
 
-        // Add this for dynamic fields
-        customFields: customFieldsObj || {},
-      });
+      const newCertificate = template(replacements);
 
+      // Logging
       try {
         const logData = {
           action: 'Generate Certificate',
-          message: `generated ${certificate.name} for student ${student.firstName} ${student.lastName} by ${req['user'].name}`,
+          message: `generated ${certificate.name} for student ${student.firstName} ${student.lastName} by ${user.name}`,
           timestamp: new Date(),
           documentId: certificate._id,
           documentType: certificate.name,
           studentId: student._id,
-          userId: req['user'].id.toString(),
+          userId: user.id.toString(),
           schoolId: data.schoolId,
         };
-
-        const log = await this.logService.create(logData);
+        await this.logService.create(logData);
       } catch (error) {
         console.error('Failed to log certificate generation action:', error);
       }
+
       return {
         success: true,
         message: `${certificate.name} generated for ${student.firstName} ${student.lastName}`,
@@ -112,20 +116,18 @@ export class CertificateService {
   }
 
   async findCertificates(schoolId: string) {
-    try {
-      const certificates = await this.certificateModel.find({ schoolId });
-      if (!certificates) {
-        throw new NotFoundException('No certificate templates found');
-      }
-      return certificates;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        error.message ||
-          'An error occurred while fetching the certificate templates',
-      );
+    const certificates = await this.certificateModel.find({ schoolId });
+    return certificates;
+  }
+
+  async deleteCertificate(id: string) {
+    const certificate = await this.certificateModel.findByIdAndDelete(id);
+    if (!certificate) {
+      throw new NotFoundException('Certificate template not found');
     }
+    return {
+      success: true,
+      message: 'Certificate template deleted successfully',
+    };
   }
 }

@@ -8,16 +8,18 @@ import {
   Delete,
   UseGuards,
   Controller,
-  NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { Roles } from '../decorators/roles.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from '../schema/user.schema';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { SchoolResponseDto } from './dto/school-response.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { AuthUser } from 'src/common/interfaces/user.interface';
 
 @Controller('school')
 @UseGuards(AuthGuard, RolesGuard)
@@ -37,8 +39,11 @@ export class SchoolController {
   }
 
   @Get()
-  async findAll(@Req() req: Request) {
-    return await this.schoolService.findAllByUser(req);
+  async findAll(
+    @CurrentUser() user: AuthUser,
+    @Query() query: PaginationQueryDto,
+  ) {
+    return await this.schoolService.findAllByUser(user, query);
   }
 
   @Get(':id')
@@ -54,16 +59,7 @@ export class SchoolController {
 
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async remove(@Param('id') id: string): Promise<SchoolResponseDto> {
-    try {
-      const school = await this.schoolService.remove(id);
-      return {
-        success: true,
-        message: 'School deleted successfully',
-        data: school,
-      };
-    } catch (error) {
-      throw new NotFoundException('School not found');
-    }
+  async remove(@Param('id') id: string) {
+    return this.schoolService.remove(id);
   }
 }

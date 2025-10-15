@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '../ui/sonner';
 
 interface SignupFormProps {
   onSuccess: () => void;
@@ -24,7 +24,6 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
   const [loading, setLoading] = useState(false);
 
   const { signup } = useAuth();
-  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -42,47 +41,27 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
       !formData.password ||
       !formData.confirmPassword
     ) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all fields',
-        variant: 'destructive',
-      });
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Error',
-        description: 'Passwords do not match',
-        variant: 'destructive',
-      });
+      toast.error('Passwords do not match!');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast({
-        title: 'Error',
-        description: 'Password must be at least 6 characters long',
-        variant: 'destructive',
-      });
+      toast.error('Password must be at least 8 characters long');
       return;
     }
 
     setLoading(true);
     try {
       await signup(formData.email, formData.password, formData.name);
-      toast({
-        title: 'Success',
-        description: 'Account created successfully!',
-      });
       onSuccess();
     } catch (error) {
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast.error(error.message);
       }
     } finally {
       setLoading(false);

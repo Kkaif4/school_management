@@ -3,16 +3,17 @@ import { User, BookOpen } from 'lucide-react';
 import { studentSchema } from '@/types/student';
 import { RequiredLabel } from '../ui/RequiredLabel';
 import { studentAPI as addStudent } from '@/lib/api';
+import { toast } from '@/components/ui/sonner';
 
-interface CustomField {
-  name: string;
-  type: 'string' | 'number' | 'date' | 'boolean';
-  required: boolean;
+interface customField {
+  name?: string;
+  type?: 'string' | 'number' | 'date' | 'boolean';
+  required?: boolean;
 }
 
 interface AddStudentFormProps {
   schoolId: string;
-  customField: CustomField[];
+  customField?: customField[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -29,7 +30,11 @@ type FormDataType = {
   grade: string;
   division: string;
   schoolId: string;
-  customField: { fieldName: string; fieldValue: string }[];
+  customField: {
+    fieldName: string;
+    fieldValue: string | number | boolean | null;
+    type?: 'string' | 'number' | 'date' | 'boolean';
+  }[];
 };
 
 const fieldLabels: Record<string, string> = {
@@ -100,10 +105,21 @@ export default function AddStudentForm({
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const handleCustomFieldChange = (index: number, value: string) => {
+  const handleCustomFieldChange = (index: number, value: string | boolean) => {
     setFormData((prev) => {
       const updated = [...prev.customField];
-      updated[index].fieldValue = value;
+      const type = updated[index].type;
+
+      if (type === 'number') {
+        updated[index].fieldValue = value === '' ? '' : Number(value);
+      } else if (type === 'boolean') {
+        updated[index].fieldValue = value;
+      } else if (type === 'date') {
+        updated[index].fieldValue = value;
+      } else {
+        updated[index].fieldValue = value;
+      }
+
       return { ...prev, customField: updated };
     });
   };
@@ -117,28 +133,35 @@ export default function AddStudentForm({
       customFields: formData.customField.reduce((acc, curr) => {
         acc[curr.fieldName] = curr.fieldValue;
         return acc;
-      }, {} as Record<string, string>),
+      }, {} as Record<string, string | number | boolean | null>),
     };
     delete payload.customField;
+
     const result = studentSchema.safeParse(payload);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {
-        if (issue.path[0])
-          fieldErrors[issue.path[0].toString()] = issue.message;
+        const key = issue.path.join('.');
+        if (!fieldErrors[key]) {
+          fieldErrors[key] = issue.message;
+        }
       });
+      toast.error('Please fill in all fields.');
       setErrors(fieldErrors);
       return;
     }
     try {
       setLoading(true);
-      await addStudent.createStudent(result.data);
+      const res = await addStudent.createStudent(result.data);
+      toast(res.data.message);
       onSuccess();
       onCancel();
     } catch (err) {
       if (err) {
         setErrors({
-          submit: err.message || 'Failed to add student. Please try again.',
+          submit:
+            err.response.data.message ||
+            'Failed to add student. Please try again.',
         });
       }
     } finally {
@@ -228,27 +251,42 @@ export default function AddStudentForm({
                   {field.name}{' '}
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
+
                 {field.type === 'boolean' ? (
                   <input
                     type="checkbox"
-                    checked={formData.customField[index].fieldValue === 'true'}
+                    checked={formData.customField[index].fieldValue as boolean}
                     onChange={(e) =>
-                      handleCustomFieldChange(
-                        index,
-                        e.target.checked ? 'true' : 'false'
-                      )
+                      handleCustomFieldChange(index, e.target.checked)
                     }
+                    required={field.required}
                   />
                 ) : (
                   <input
-                    type={field.type === 'date' ? 'date' : field.type}
+                    type={
+                      field.type === 'date'
+                        ? 'date'
+                        : field.type === 'number'
+                        ? 'number'
+                        : 'text'
+                    }
                     className={inputClass}
-                    value={formData.customField[index].fieldValue ?? ''}
+                    value={
+                      formData.customField[index].fieldValue?.toString() ?? ''
+                    }
                     onChange={(e) =>
                       handleCustomFieldChange(index, e.target.value)
                     }
+                    required={field.required}
                   />
                 )}
+
+                {field.required && !formData.customField[index].fieldValue && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {field.name} is required.
+                  </p>
+                )}
+
                 {renderError(`customField.${index}.fieldValue`)}
               </div>
             ))}

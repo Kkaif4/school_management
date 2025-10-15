@@ -121,7 +121,7 @@ export class CreateStudentDto {
       'Dynamic custom fields for additional student information. Accepts key-value pairs.',
     type: Object,
   })
-  @IsObject({ message: 'customFields must be an object with key-value pairs' })
   @IsOptional()
-  customFields: Map<string, any>;
+  @IsObject({ message: 'customFields must be an object with key-value pairs' })
+  customFields?: Record<string, string | number | boolean | any[] | null>;
 }

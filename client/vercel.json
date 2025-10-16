@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/proxy/:path*",
+      "destination": "http://bsm-backend.cloudjiffy.net/:path*"
+    }
+  ]
+}

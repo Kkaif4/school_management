@@ -78,7 +78,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signup = async (email: string, password: string, name: string) => {
     try {
-      const { data } = await authAPI.register(email, password, name);
+      const response = await authAPI.register(email, password, name);
+      console.log(response.data);
+      const data = response.data.data;
       const { token, user: userData } = data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -86,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(userData);
     } catch (error) {
       if (error) {
-        toast.error(error.response?.data?.message || 'Signup failed');
+        toast.error(error.message || 'Signup failed');
         throw new Error('Signup failed');
       }
     }

@@ -1,36 +1,20 @@
 import {
-  Param,
-  UseGuards,
-  Controller,
   Get,
   Post,
   Body,
-  Req,
+  Param,
+  Delete,
+  UseGuards,
+  Controller,
 } from '@nestjs/common';
-import { CertificateService } from './certificate.service';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/schema/user.schema';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/decorator/roles.decorator';
-import { UserRole } from 'src/schema/user.schema';
-import { Divisions, Gender } from 'src/schema/student.schema';
-import { LogService } from 'src/log/log.service';
+import { CertificateService } from './certificate.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
-import { CreateLogDto } from 'src/log/dto/create-log.dto';
-import { StudentService } from 'src/student/student.service';
-
-export interface StudentData {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  fatherName: string;
-  motherName: string;
-  dateOfBirth: string;
-  gender: Gender;
-  rollNumber: string;
-  grade: number;
-  division: Divisions;
-  contactNumber: string;
-}
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { AuthUser } from 'src/common/interfaces/user.interface';
 
 @Controller('certificate')
 @UseGuards(AuthGuard, RolesGuard)
@@ -41,50 +25,31 @@ export interface StudentData {
   UserRole.TEACHER,
 )
 export class CertificateController {
-  constructor(
-    private readonly certificateService: CertificateService,
-    private readonly logService: LogService,
-    private readonly studentService: StudentService,
-  ) {}
+  constructor(private readonly certificateService: CertificateService) {}
+
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async findAll(@Body() createCertificateDto: CreateCertificateDto) {
+  async create(@Body() createCertificateDto: CreateCertificateDto) {
     return await this.certificateService.create(createCertificateDto);
   }
 
-  @Get(':id')
-  async findAllCertificates(@Param('id') schoolId: string) {
+  @Get(':schoolId')
+  async findAllCertificates(@Param('schoolId') schoolId: string) {
     return await this.certificateService.findCertificates(schoolId);
   }
 
-  @Get(':studentId/:certificateId')
+  @Get(':schoolId/:studentId/:certificateId')
   async generateCertificate(
-    @Param() data: { studentId: string; certificateId: string },
-    @Req() req: Request,
+    @Param()
+    data: { schoolId: string; studentId: string; certificateId: string },
+    @CurrentUser() user: AuthUser,
   ) {
-    const result = await this.certificateService.generateCertificate(data);
+    return await this.certificateService.generateCertificate(data, user);
+  }
 
-    try {
-      const user = req['user'];
-      if (!user?.id) {
-        console.error('Missing user data in request');
-        return result;
-      }
-      const logData: CreateLogDto = {
-        userId: user.id.toString(),
-        studentId: data.studentId,
-        documentType: 'certificate',
-        documentId: data.certificateId,
-        message: `${result.message} by ${user.name || 'User'}`,
-        action: 'print',
-      };
-
-      if (result) {
-        await this.logService.createLog(logData);
-      }
-    } catch (err) {
-      console.error('Error creating log:', err.message);
-    }
-    return result;
+  // delete
+  @Delete(':id')
+  async deleteCertificate(@Param('id') id: string) {
+    return await this.certificateService.deleteCertificate(id);
   }
 }

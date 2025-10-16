@@ -19,6 +19,14 @@ export class CreateLogDto {
   studentId: string;
 
   @ApiProperty({
+    description: 'ID of the school related to this log',
+    example: '64f987abc456def123456789',
+  })
+  @IsMongoId({ message: 'Invalid schoolId format' })
+  @IsNotEmpty()
+  schoolId: string;
+
+  @ApiProperty({
     description: 'Type of document (e.g., certificate, ID card, transcript)',
     example: 'certificate',
   })

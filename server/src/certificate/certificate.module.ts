@@ -9,6 +9,8 @@ import { Student, StudentSchema } from 'src/schema/student.schema';
 import { Log, LogSchema } from 'src/schema/log.schema';
 import { UserModule } from 'src/user/user.module';
 import { StudentModule } from 'src/student/student.module';
+import { School, SchoolSchema } from 'src/schema/school.schema';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 @Module({
   imports: [
@@ -16,12 +18,13 @@ import { StudentModule } from 'src/student/student.module';
       { name: Certificate.name, schema: CertificateSchema },
       { name: Student.name, schema: StudentSchema },
       { name: Log.name, schema: LogSchema },
+      { name: School.name, schema: SchoolSchema },
     ]),
     LogModule,
     StudentModule,
     UserModule,
   ],
   controllers: [CertificateController],
-  providers: [CertificateService],
+  providers: [CertificateService, ResponseTransformService],
 })
 export class CertificateModule {}

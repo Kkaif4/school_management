@@ -2,6 +2,7 @@ import {
   Get,
   Post,
   Body,
+  Query,
   Patch,
   Param,
   Delete,
@@ -9,16 +10,16 @@ import {
   Controller,
   UploadedFile,
   UseInterceptors,
-  Query,
 } from '@nestjs/common';
-import { StudentArrayResponse, StudentService } from './student.service';
+import { UserRole } from '../schema/user.schema';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { Roles } from '../decorator/roles.decorator';
-import { UserRole } from '../schema/user.schema';
+import { StudentService } from './student.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { StudentResponseDto } from './dto/student-response.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Controller('student')
 @UseGuards(AuthGuard, RolesGuard)
@@ -42,33 +43,21 @@ export class StudentController {
     return res;
   }
 
-  @Get()
-  @Roles(UserRole.SUB_ADMIN)
-  findAll(): Promise<StudentArrayResponse> {
-    return this.studentService.findAll();
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
+  findOne(@Param('id') id: string): Promise<StudentResponseDto> {
+    return this.studentService.findOne(id);
   }
 
-  @Get(':schoolId')
+  @Get('/school/:schoolId')
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.ADMIN,
     UserRole.SUB_ADMIN,
     UserRole.TEACHER,
   )
-  findBySchool(
-    @Param('schoolId') schoolId: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('sort') sort?: string,
-    @Query('order') order?: 'asc' | 'desc',
-  ): Promise<StudentArrayResponse> {
-    return this.studentService.findBySchool(schoolId, page, limit, sort, order);
-  }
-
-  @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SUB_ADMIN, UserRole.TEACHER)
-  findOne(@Param('id') id: string): Promise<StudentResponseDto> {
-    return this.studentService.findOne(id);
+  findBySchool(@Param('schoolId') schoolId: string) {
+    return this.studentService.findBySchool(schoolId);
   }
 
   @Patch(':id')

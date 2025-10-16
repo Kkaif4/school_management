@@ -1,132 +1,98 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, FilterQuery } from 'mongoose';
 import { Log } from '../schema/log.schema';
 import { CreateLogDto } from './dto/create-log.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { PaginationUtil } from 'src/utils/pagination.utils';
+import { LogResponseDto } from './dto/log-response.dto';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 @Injectable()
 export class LogService {
   constructor(
     @InjectModel(Log.name)
     private readonly logModel: Model<Log>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
   async createLog(logData: CreateLogDto): Promise<Log | null> {
     try {
-      // Convert string IDs to ObjectIds
-      const formattedLogData = {
-        ...logData,
-        userId: new Types.ObjectId(logData.userId),
-        studentId: new Types.ObjectId(logData.studentId),
-        documentId: new Types.ObjectId(logData.documentId),
-      };
-
-      const log = await this.logModel.create(formattedLogData);
+      const log = await this.logModel.create(logData);
       return log;
     } catch (error) {
-      console.error('Error creating log:', error.message);
-      if (error.name === 'ValidationError') {
-        console.error('Validation errors:', error.errors);
+      if (error instanceof Error) {
+        console.error('Error creating log:', error.message);
+        if (error.name === 'ValidationError') {
+          console.error('Validation errors:', (error as any).errors);
+        }
+      } else {
+        console.error('An unknown error occurred:', error);
       }
       return null;
     }
   }
-
-  async getLogsByStudent(
-    studentId: string,
-    options: {
-      page?: number;
-      limit?: number;
-      sort?: 'asc' | 'desc';
-      documentType?: string;
-    },
-  ) {
+  async getLogsByStudent(query: PaginationQueryDto, studentId: string) {
     try {
-      const { page = 1, limit = 20, sort = 'desc', documentType } = options;
-      const skip = (page - 1) * limit;
-      const query: any = { studentId: new Types.ObjectId(studentId) };
+      // 1. Validate pagination params
+      const { page, limit } = PaginationUtil.validatePaginationParams(
+        query.page,
+        query.limit,
+      );
 
-      if (documentType) {
-        query.documentType = documentType;
-      }
+      const combinedQuery: FilterQuery<Log> = {
+        studentId: new Types.ObjectId(studentId),
+      };
 
       const [logs, total] = await Promise.all([
-        this.logModel
-          .find(query)
-          .sort({ createdAt: sort === 'desc' ? -1 : 1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('userId', 'name email')
-          .populate('studentId', 'firstName lastName rollNumber')
-          .lean(),
-        this.logModel.countDocuments(query),
+        this.logModel.find(combinedQuery).sort({ createdAt: -1 }).lean(),
+        this.logModel.countDocuments(combinedQuery),
       ]);
+      console.log(logs);
 
-      return {
-        success: true,
-        data: logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
+      const meta = {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
       };
+
+      return this.transformService.transformPaginatedResponse(
+        LogResponseDto,
+        logs,
+        meta,
+      );
     } catch (error) {
-      console.error('Error fetching student logs:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch student logs',
-      };
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch student logs';
+      throw new BadRequestException(message);
     }
   }
 
-  async getLogsBySchool(
-    schoolId: string,
-    options: {
-      page?: number;
-      limit?: number;
-      sort?: 'asc' | 'desc';
-      documentType?: string;
-    },
-  ) {
+  async getLogsBySchool(schoolId: string) {
     try {
-      const { page = 1, limit = 20, sort = 'desc', documentType } = options;
-      const skip = (page - 1) * limit;
-      const query: any = { schoolId: new Types.ObjectId(schoolId) };
+      const query: FilterQuery<Log> = {
+        schoolId: new Types.ObjectId(schoolId),
+      };
 
-      if (documentType) {
-        query.documentType = documentType;
-      }
-
-      const [logs, total] = await Promise.all([
-        this.logModel
-          .find(query)
-          .sort({ createdAt: sort === 'desc' ? -1 : 1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('userId', 'name email')
-          .populate('studentId', 'firstName lastName rollNumber')
-          .lean(),
-        this.logModel.countDocuments(query),
-      ]);
+      const logs = await this.logModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .populate('userId', 'name email')
+        .populate('studentId', 'firstName lastName rollNumber')
+        .lean();
 
       return {
         success: true,
         data: logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
       };
     } catch (error) {
       console.error('Error fetching school logs:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch school logs',
-      };
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch school logs';
+      throw new BadRequestException(message);
     }
   }
 }

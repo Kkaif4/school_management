@@ -4,6 +4,7 @@ import { SchoolService } from './school.service';
 import { SchoolController } from './school.controller';
 import { School, SchoolSchema } from '../schema/school.schema';
 import { User, UserSchema } from 'src/schema/user.schema';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { User, UserSchema } from 'src/schema/user.schema';
     ]),
   ],
   controllers: [SchoolController],
-  providers: [SchoolService],
+  providers: [SchoolService, ResponseTransformService],
   exports: [SchoolService],
 })
 export class SchoolModule {}

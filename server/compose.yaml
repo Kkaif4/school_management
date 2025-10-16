@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: .
+    environment:
+      NODE_ENV: development
+      MONGO_URI_PROD: mongodb+srv://brightside_school_management:Yj7xnor8RChi3Ekm@cluster0.2ejyxon.mongodb.net/BrightSchool?retryWrites=true&w=majority&appName=Cluster0
+      JWT_EXPIRE: 1d
+      PORT: 4000
+    env_file:
+      - .env
+    ports:
+      - 4000:4000
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1

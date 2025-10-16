@@ -9,8 +9,12 @@ import { Model } from 'mongoose';
 import * as Handlebars from 'handlebars';
 import { Certificate } from '../schema/certificate.schema';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
-import { Bonafide } from 'src/utils/bonafide';
 import { Student } from 'src/schema/student.schema';
+import { School } from 'src/schema/school.schema';
+import { Log } from 'src/schema/log.schema';
+import { AuthUser } from 'src/common/interfaces/user.interface';
+import { CertificateResponseDto } from './dto/certificate-response.dto';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
 
 @Injectable()
 export class CertificateService {
@@ -19,21 +23,32 @@ export class CertificateService {
     private readonly certificateModel: Model<Certificate>,
     @InjectModel(Student.name)
     private readonly studentModel: Model<Student>,
+    @InjectModel(School.name)
+    private readonly schoolModel: Model<School>,
+    @InjectModel(Log.name) private readonly logService: Model<Log>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
-  async create(createCertificateDto: CreateCertificateDto) {
-    await this.certificateModel.create(createCertificateDto);
-    const result = {
-      success: true,
-      message: 'Certificate template created successfully',
-    };
-    return result;
+  async create(
+    createCertificateDto: CreateCertificateDto,
+  ): Promise<CertificateResponseDto> {
+    const certificate =
+      await this.certificateModel.create(createCertificateDto);
+    return this.findOne(certificate._id.toString());
   }
 
-  async generateCertificate(data: {
-    studentId: string;
-    certificateId: string;
-  }) {
+  async findOne(id: string): Promise<CertificateResponseDto> {
+    const certificate = await this.certificateModel.findById({ _id: id });
+    if (!certificate) {
+      throw new NotFoundException('Certificate not found');
+    }
+    return this.transformService.transform(CertificateResponseDto, certificate);
+  }
+
+  async generateCertificate(
+    data: { schoolId: string; studentId: string; certificateId: string },
+    user: AuthUser,
+  ) {
     try {
       const student = await this.studentModel.findById({ _id: data.studentId });
       if (!student) {
@@ -47,30 +62,42 @@ export class CertificateService {
         throw new NotFoundException('Certificate template not found');
       }
 
-      const template = Handlebars.compile(certificate.templateCode);
-
-      const newCertificate = template({
+      // Clean template and compile
+      const cleanTemplateCode = certificate.templateCode.replace(/\\n/g, '');
+      const template = Handlebars.compile(cleanTemplateCode);
+      // Prepare replacements for Handlebars
+      const replacements: Record<string, any> = {
+        studentId: student.studentId,
+        registrationNumber: student.registrationNumber,
         firstName: student.firstName,
         middleName: student.middleName ?? '',
         lastName: student.lastName,
-        fatherName: student.fatherName,
-        motherName: student.motherName,
-        dateOfBirth: student.dateOfBirth,
-        birthPlace: student.birthPlace,
+        dateOfBirth: new Date(student.dateOfBirth).toLocaleDateString('en-GB'),
         gender: student.gender,
-        nationality: student.nationality,
-        religion: student.religion,
-        cast: student.cast,
-        adhaar: student.adhaar,
-        registerNumber: student.registerNumber,
-        rollNumber: String(student.rollNumber),
-        grade: String(student.grade),
+        grade: student.grade,
         division: student.division,
-        admissionDate: student.admissionDate,
-        previousSchoolName: student.previousSchoolName ?? '',
-        address: student.address,
-        contactNumber: student.contactNumber,
-      });
+        rollNumber: student.rollNumber,
+        ...student.customFields,
+      };
+
+      const newCertificate = template(replacements);
+
+      // Logging
+      try {
+        const logData = {
+          action: 'Generate Certificate',
+          message: `generated ${certificate.name} for student ${student.firstName} ${student.lastName} by ${user.name}`,
+          timestamp: new Date(),
+          documentId: certificate._id,
+          documentType: certificate.name,
+          studentId: student._id,
+          userId: user.id.toString(),
+          schoolId: data.schoolId,
+        };
+        await this.logService.create(logData);
+      } catch (error) {
+        console.error('Failed to log certificate generation action:', error);
+      }
 
       return {
         success: true,
@@ -88,20 +115,18 @@ export class CertificateService {
   }
 
   async findCertificates(schoolId: string) {
-    try {
-      const certificates = await this.certificateModel.find({ schoolId });
-      if (!certificates || certificates.length === 0) {
-        throw new NotFoundException('No certificate templates found');
-      }
-      return certificates;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        error.message ||
-          'An error occurred while fetching the certificate templates',
-      );
+    const certificates = await this.certificateModel.find({ schoolId });
+    return certificates;
+  }
+
+  async deleteCertificate(id: string) {
+    const certificate = await this.certificateModel.findByIdAndDelete(id);
+    if (!certificate) {
+      throw new NotFoundException('Certificate template not found');
     }
+    return {
+      success: true,
+      message: 'Certificate template deleted successfully',
+    };
   }
 }

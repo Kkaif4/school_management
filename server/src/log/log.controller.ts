@@ -1,9 +1,10 @@
-import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { LogService } from './log.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/decorator/roles.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/schema/user.schema';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Controller('logs')
 @UseGuards(AuthGuard, RolesGuard)
@@ -14,33 +15,14 @@ export class LogController {
   @Get(':studentId')
   async getStudentLogs(
     @Param('studentId') studentId: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('documentType') documentType?: string,
+    @Query() query: PaginationQueryDto,
   ) {
-    return this.logService.getLogsByStudent(studentId, {
-      page,
-      limit,
-      sort,
-      documentType,
-    });
+    return this.logService.getLogsByStudent(query, studentId);
   }
 
   @Get('school/:schoolId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async getSchoolLogs(
-    @Param('schoolId') schoolId: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('documentType') documentType?: string,
-  ) {
-    return this.logService.getLogsBySchool(schoolId, {
-      page,
-      limit,
-      sort,
-      documentType,
-    });
+  async getSchoolLogs(@Param('schoolId') schoolId: string) {
+    return this.logService.getLogsBySchool(schoolId);
   }
 }

@@ -1,24 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { isValidObjectId, Model, Types } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from '../schema/user.schema';
 import { UserAlreadyExistsException } from 'src/exceptions/already-exists.exception';
-import { Roles } from 'src/decorator/roles.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { School } from 'src/schema/school.schema';
-import { UserResponseDto } from './dto/user-response.dto';
-
-export interface UserResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: Types.ObjectId;
-    role: string;
-    schoolId: Types.ObjectId;
-    isActive: boolean;
-  };
-}
+import { PaginatedData, UserResponseDto } from './dto/user-response.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ResponseTransformService } from 'src/services/responseTransformer.service';
+import { PaginationUtil } from 'src/utils/pagination.utils';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class UserService {
@@ -27,9 +19,10 @@ export class UserService {
     private userModel: Model<User>,
     @InjectModel(School.name)
     private schoolModel: Model<School>,
+    private readonly transformService: ResponseTransformService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
+  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const existingUser = await this.userModel.findOne({
       email: createUserDto.email,
     });
@@ -43,112 +36,124 @@ export class UserService {
     }
     createUserDto.role = UserRole.TEACHER;
     const user = await this.userModel.create(createUserDto);
-    const response = {
-      success: true,
-      message: 'User created successfully',
-      data: {
-        id: user._id,
-        role: user.role,
-        schoolId: user.schoolId,
-        isActive: user.isActive,
-      },
-    };
-    return response;
+    school.totalTeachers += 1;
+    await school.save();
+    return this.findOne(user._id.toString());
   }
 
-  async findAll(): Promise<User[]> {
-    const users = await this.userModel.find();
-    return users;
+  async findMe(userId: string): Promise<UserResponseDto> {
+    return this.findOne(userId);
   }
 
-  async findMe(req: Request): Promise<UserResponseDto> {
-    const userId = (req as any).user.id;
-    if (!isValidObjectId(userId)) {
-      throw new NotFoundException('Invalid id');
-    }
-    const user = await this.userModel.findById({ _id: userId });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    const response = {
-      success: true,
-      message: 'User found successfully',
-      data: user,
-    };
-    return response;
-  }
-
-  async findAllTeachers(schoolId: string) {
-    try {
-      const teachers = await this.userModel.find({
+  async findAllTeachers(
+    query: PaginationQueryDto,
+    schoolId: string,
+  ): Promise<PaginatedData<UserResponseDto>> {
+    const { page, limit } = PaginationUtil.validatePaginationParams(
+      query.page,
+      query.limit,
+    );
+    const [teachers, total] = await Promise.all([
+      this.userModel.find({
         schoolId,
         $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
-      });
-
-      if (!teachers || teachers.length === 0) {
-        throw new NotFoundException('Teachers not found');
-      }
-      return teachers;
-    } catch (error) {
-      throw new NotFoundException('Teachers not found');
-    }
-  }
-
-  async findSchoolTeachers(schoolId: string) {
-    try {
-      const teachers = await this.userModel.find({
+      }),
+      this.userModel.countDocuments({
         schoolId,
         $or: [{ role: UserRole.TEACHER }, { role: UserRole.SUB_ADMIN }],
-      });
-      if (!teachers || teachers.length === 0) {
-        throw new NotFoundException('Teachers not found');
-      }
-      return teachers;
-    } catch (error) {
-      throw new NotFoundException('Teachers not found');
-    }
+      }),
+    ]);
+
+    const meta = {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPreviousPage: page > 1,
+    };
+
+    return this.transformService.transformPaginatedResponse(
+      UserResponseDto,
+      teachers,
+      meta,
+    );
+  }
+
+  async findSchoolTeachers(
+    query: PaginationQueryDto,
+    schoolId: string,
+  ): Promise<PaginatedData<UserResponseDto>> {
+    const { page, limit } = PaginationUtil.validatePaginationParams(
+      query.page,
+      query.limit,
+    );
+    const [teachers, total] = await Promise.all([
+      this.userModel.find({
+        schoolId,
+        role: UserRole.TEACHER,
+      }),
+      this.userModel.countDocuments({
+        schoolId,
+        role: UserRole.TEACHER,
+      }),
+    ]);
+
+    const meta = {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPreviousPage: page > 1,
+    };
+    return this.transformService.transformPaginatedResponse(
+      UserResponseDto,
+      teachers,
+      meta,
+    );
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
     if (!isValidObjectId(id)) {
       throw new NotFoundException('Invalid id');
     }
-    const user = await this.userModel.findById({ _id: id });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    const response = {
-      success: true,
-      message: 'User found successfully',
-      data: user,
-    };
-    return response;
-  }
-
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .select('-password');
+    const user = await this.userModel.findById({ _id: id }).lean().exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return this.transformService.transform(UserResponseDto, user);
   }
 
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async remove(id: string): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.userModel.findByIdAndUpdate(id, updateUserDto, {
+      new: true,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.findOne(user._id.toString());
+  }
+
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  async remove(id: string): Promise<{ deleted: boolean }> {
     const user = await this.userModel.findByIdAndDelete(id);
+    const school = await this.schoolModel.findById({ _id: user?.schoolId });
+    if (school) {
+      school.totalTeachers -= 1;
+      await school.save();
+    }
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return user;
-  }
-
-  async findByEmail(email: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ email });
-    return user;
+    return { deleted: true };
   }
 }

@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(userData);
     } catch (error) {
       if (error) {
-        toast.error(error.message || 'Signup failed');
+        console.log(error);
+        toast(error.message || 'Signup failed');
         throw new Error('Signup failed');
       }
     }

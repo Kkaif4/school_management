@@ -72,14 +72,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(user);
       toast(res.data.data.message);
     } catch (error) {
-      throw new Error(error.message || 'Login failed');
+      toast(error.response.data.message || 'Login failed');
+      throw new Error(error.response.data.message || 'Login failed');
     }
   };
 
   const signup = async (email: string, password: string, name: string) => {
     try {
       const response = await authAPI.register(email, password, name);
-      console.log(response.data);
       const data = response.data.data;
       const { token, user: userData } = data;
       localStorage.setItem('token', token);
@@ -88,9 +88,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(userData);
     } catch (error) {
       if (error) {
-        console.log(error);
-        toast(error.message || 'Signup failed');
-        throw new Error('Signup failed');
+        toast(error.response.data.message || 'Signup failed');
+        throw new Error(error.response.data.message || 'Signup failed');
       }
     }
   };

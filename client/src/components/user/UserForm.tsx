@@ -41,6 +41,11 @@ export default function AddUserForm({
     e.preventDefault();
     setErrors({});
 
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
     const result = userSchema.safeParse(formData);
 
     if (!result.success) {
@@ -62,13 +67,17 @@ export default function AddUserForm({
       onSuccess();
     } catch (err) {
       if (err) {
-        toast(err.response?.data?.validationErrors[0] || 'Signup failed');
         setErrors({
           submit:
-            err.response.data.validationErrors[0] ||
-            err.response.data.message ||
+            err.response?.data?.validationErrors[0] ||
+            err.response?.data?.message ||
             err.message,
         });
+        toast(
+          err.response?.data?.validationErrors[0] ||
+            err.response?.data?.message ||
+            err.message
+        );
       } else {
         toast('Failed to add user. Please try again.');
         setErrors({ submit: 'Failed to add user. Please try again.' });

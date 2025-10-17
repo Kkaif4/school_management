@@ -23,8 +23,6 @@ export class CertificateService {
     private readonly certificateModel: Model<Certificate>,
     @InjectModel(Student.name)
     private readonly studentModel: Model<Student>,
-    @InjectModel(School.name)
-    private readonly schoolModel: Model<School>,
     @InjectModel(Log.name) private readonly logService: Model<Log>,
     private readonly transformService: ResponseTransformService,
   ) {}
@@ -119,7 +117,7 @@ export class CertificateService {
     return certificates;
   }
 
-  async deleteCertificate(id: string) {
+  async remove(id: string) {
     const certificate = await this.certificateModel.findByIdAndDelete(id);
     if (!certificate) {
       throw new NotFoundException('Certificate template not found');
@@ -128,5 +126,21 @@ export class CertificateService {
       success: true,
       message: 'Certificate template deleted successfully',
     };
+  }
+  async removeAllBySchoolId(schoolId: string) {
+    try {
+      const result = await this.certificateModel.deleteMany({ schoolId });
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error removing school certificates:', error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to remove school certificates';
+      throw new BadRequestException(message);
+    }
   }
 }

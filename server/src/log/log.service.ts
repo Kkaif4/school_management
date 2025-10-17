@@ -32,6 +32,7 @@ export class LogService {
       return null;
     }
   }
+
   async getLogsByStudent(query: PaginationQueryDto, studentId: string) {
     try {
       // 1. Validate pagination params
@@ -71,7 +72,7 @@ export class LogService {
     }
   }
 
-  async getLogsBySchool(schoolId: string) {
+  async getLogsBySchoolId(schoolId: string) {
     try {
       const query: FilterQuery<Log> = {
         schoolId: new Types.ObjectId(schoolId),
@@ -92,6 +93,38 @@ export class LogService {
       console.error('Error fetching school logs:', error);
       const message =
         error instanceof Error ? error.message : 'Failed to fetch school logs';
+      throw new BadRequestException(message);
+    }
+  }
+
+  async removeAllBySchoolId(schoolId: string) {
+    try {
+      const result = await this.logModel.deleteMany({ schoolId });
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error removing school logs:', error);
+      const message =
+        error instanceof Error ? error.message : 'Failed to remove school logs';
+      throw new BadRequestException(message);
+    }
+  }
+
+  async removeAllByStudentId(studentId: string) {
+    try {
+      const result = await this.logModel.deleteMany({ studentId });
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error removing student logs:', error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to remove student logs';
       throw new BadRequestException(message);
     }
   }

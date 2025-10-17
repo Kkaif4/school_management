@@ -129,7 +129,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
           : { studentFields: enableCustomFields ? studentFields : [] }),
       };
 
-      console.log('this is: ', payload);
       if (isEditing && schoolToEdit?._id) {
         const response = await schoolAPI.updateSchool(
           schoolToEdit._id,
@@ -144,8 +143,11 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
       onSchoolCreated();
       handleClose();
     } catch (error) {
-      console.log(error);
-      sonnerToast(error.response.data.message || 'Failed to create school');
+      sonnerToast(
+        error?.response?.data.message ||
+          error.message ||
+          'Failed to create school'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -264,14 +266,18 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
                     <Info className="w-4 h-4" />
                   </Button>
                 </div>
-
                 <DefaultFieldsInfoDialog
                   open={showInfoDialog}
                   onOpenChange={setShowInfoDialog}
                 />
 
                 {enableCustomFields && (
-                  <div className="space-y-4 border rounded-md p-4">
+                  // Added max-h-72 (you can adjust this value) and overflow-y-auto
+                  <div className="space-y-4 border rounded-md p-4 max-h-72 overflow-y-auto">
+                    <p className="text-xs text-gray-500">
+                      Field names Must be unique and should not start with a
+                      number or contain spaces and special characters.
+                    </p>
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">Custom Fields</h4>
                       <Button
@@ -293,7 +299,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
                           value={field.name}
                           onChange={(e) => {
                             const value = e.target.value;
-
                             const validPattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
                             if (value === '' || validPattern.test(value)) {

@@ -23,6 +23,6 @@ export class LogController {
   @Get('school/:schoolId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async getSchoolLogs(@Param('schoolId') schoolId: string) {
-    return this.logService.getLogsBySchool(schoolId);
+    return this.logService.getLogsBySchoolId(schoolId);
   }
 }

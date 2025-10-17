@@ -51,7 +51,11 @@ const AdminControlPanel = () => {
       setSchools(response.data.data);
       toast('Schools fetched successfully');
     } catch (error) {
-      toast.error(error.response.data.message || 'Failed to fetch schools');
+      toast.error(
+        error.response.data.message ||
+          error.message ||
+          'Failed to fetch schools'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -80,11 +84,16 @@ const AdminControlPanel = () => {
     if (!itemToDelete) return;
 
     try {
-      await schoolAPI.deleteSchool(itemToDelete);
+      const response = await schoolAPI.deleteSchool(itemToDelete);
+      console.log(response.data);
       toast('School deleted successfully');
       fetchSchools();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(
+        error.response.data.message ||
+          error.message ||
+          'Failed to delete school'
+      );
     } finally {
       handleCloseModal();
     }

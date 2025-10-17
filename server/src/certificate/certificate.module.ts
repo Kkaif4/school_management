@@ -26,5 +26,6 @@ import { ResponseTransformService } from 'src/services/responseTransformer.servi
   ],
   controllers: [CertificateController],
   providers: [CertificateService, ResponseTransformService],
+  exports: [CertificateService],
 })
 export class CertificateModule {}

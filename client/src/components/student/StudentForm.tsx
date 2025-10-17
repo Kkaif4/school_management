@@ -158,8 +158,10 @@ export default function AddStudentForm({
       onCancel();
     } catch (err) {
       if (err) {
+        console.log('this is error: ', err);
         setErrors({
           submit:
+            err.response.data.validationErrors[0] ||
             err.response.data.message ||
             'Failed to add student. Please try again.',
         });

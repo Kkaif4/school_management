@@ -6,9 +6,11 @@ import { Student, StudentSchema } from '../schema/student.schema';
 import { School, SchoolSchema } from 'src/schema/school.schema';
 import { Log, LogSchema } from 'src/schema/log.schema';
 import { ResponseTransformService } from 'src/services/responseTransformer.service';
+import { LogModule } from 'src/log/log.module';
 
 @Module({
   imports: [
+    LogModule,
     MongooseModule.forFeature([
       { name: Student.name, schema: StudentSchema },
       { name: School.name, schema: SchoolSchema },

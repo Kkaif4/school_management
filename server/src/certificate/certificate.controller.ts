@@ -50,6 +50,6 @@ export class CertificateController {
   // delete
   @Delete(':id')
   async deleteCertificate(@Param('id') id: string) {
-    return await this.certificateService.deleteCertificate(id);
+    return await this.certificateService.remove(id);
   }
 }

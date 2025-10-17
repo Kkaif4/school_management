@@ -32,7 +32,7 @@ export class UserService {
       throw new NotFoundException('School not found');
     }
     if (existingUser) {
-      throw new UserAlreadyExistsException('email', 'Email already exists');
+      throw new UserAlreadyExistsException('email', createUserDto.email);
     }
     createUserDto.role = UserRole.TEACHER;
     const user = await this.userModel.create(createUserDto);

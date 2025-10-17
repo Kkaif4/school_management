@@ -18,12 +18,8 @@ import {
 } from './dto/student-response.dto';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Log } from 'src/schema/log.schema';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
-import { PaginationUtil } from 'src/utils/pagination.utils';
 import { ResponseTransformService } from 'src/services/responseTransformer.service';
-import { PaginatedData } from 'src/user/dto/user-response.dto';
-import { plainToInstance } from 'class-transformer';
-
+import { LogService } from 'src/log/log.service';
 interface DuplicateCheckResult {
   isDuplicate: boolean;
   existingStudent?: Student;
@@ -40,6 +36,7 @@ export class StudentService {
     @InjectModel(Log.name)
     private logModel: Model<Log>,
     private readonly transformService: ResponseTransformService,
+    private readonly logService: LogService,
   ) {}
 
   private async checkDuplicateStudent(
@@ -258,6 +255,7 @@ export class StudentService {
   async remove(id: string): Promise<{ deleted: boolean }> {
     const student = await this.studentModel.findByIdAndDelete(id);
     const school = await this.schoolModel.findById({ _id: student?.schoolId });
+    await this.logService.removeAllByStudentId(id);
     if (school) {
       school.totalStudents -= 1;
       await school.save();

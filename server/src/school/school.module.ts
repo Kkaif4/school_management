@@ -5,9 +5,15 @@ import { SchoolController } from './school.controller';
 import { School, SchoolSchema } from '../schema/school.schema';
 import { User, UserSchema } from 'src/schema/user.schema';
 import { ResponseTransformService } from 'src/services/responseTransformer.service';
+import { StudentModule } from 'src/student/student.module';
+import { LogModule } from 'src/log/log.module';
+import { CertificateModule } from 'src/certificate/certificate.module';
 
 @Module({
   imports: [
+    LogModule,
+    StudentModule,
+    CertificateModule,
     MongooseModule.forFeature([
       { name: School.name, schema: SchoolSchema },
       { name: User.name, schema: UserSchema },

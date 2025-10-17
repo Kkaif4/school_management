@@ -13,7 +13,9 @@ import { AuthUser } from 'src/common/interfaces/user.interface';
 import { PaginatedData } from 'src/user/dto/user-response.dto';
 import { PaginationUtil } from 'src/utils/pagination.utils';
 import { ResponseTransformService } from 'src/services/responseTransformer.service';
-
+import { StudentService } from 'src/student/student.service';
+import { LogService } from 'src/log/log.service';
+import { CertificateService } from 'src/certificate/certificate.service';
 export interface SchoolsArray {
   success: boolean;
   message: string;
@@ -28,6 +30,9 @@ export class SchoolService {
     @InjectModel(User.name)
     private userModel: Model<User>,
     private readonly transformService: ResponseTransformService,
+    private readonly studentService: StudentService,
+    private readonly logService: LogService,
+    private readonly certificateService: CertificateService,
   ) {}
 
   async create(
@@ -112,6 +117,13 @@ export class SchoolService {
   }
 
   async remove(id: string): Promise<{ deleted: true }> {
+    await this.studentService.removeAll(id);
+    await this.logService.removeAllBySchoolId(id);
+    await this.certificateService.removeAllBySchoolId(id);
+    await this.userModel.deleteMany({
+      schoolId: id,
+      $or: [{ role: 'teacher' }, { role: 'sub_admin' }],
+    });
     const school = await this.schoolModel.findByIdAndDelete(id);
     if (!school) {
       throw new NotFoundException('School not found');

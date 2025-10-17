@@ -1,12 +1,12 @@
 import { formatDate, School } from '@/types/school';
 import {
+  Home,
+  Plus,
+  Users,
+  Trash,
+  MapPin,
   FileText,
   GraduationCap,
-  Home,
-  MapPin,
-  Plus,
-  Trash,
-  Users,
 } from 'lucide-react';
 import StatCard from '../StatCard';
 import { useEffect, useState } from 'react';
@@ -126,20 +126,21 @@ export default function HomeContent({ school }: HomeContentProps) {
               </div>
             </div>
 
-            {/* Address */}
-            {school.address && (
-              <div className="flex items-start sm:items-center space-x-3">
-                <div className="bg-gray-50 p-2 rounded-lg shrink-0">
-                  <MapPin className="h-5 w-5 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Location</p>
-                  <p className="font-medium text-gray-900 break-words">
-                    {school.address}
-                  </p>
-                </div>
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="bg-gray-50 p-2 rounded-lg shrink-0">
+                <MapPin className="h-5 w-5 text-gray-600" />
               </div>
-            )}
+              <div>
+                <p className="text-xs sm:text-sm text-gray-500">Location</p>
+                <p className="font-medium text-gray-900 break-words">
+                  {school.address ? (
+                    <span>{school.address}</span>
+                  ) : (
+                    <i className="text-muted-foreground">Not provided</i>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
@@ -169,7 +170,11 @@ export default function HomeContent({ school }: HomeContentProps) {
                   Contact Number
                 </p>
                 <p className="font-medium text-gray-900 break-words">
-                  {school.contactNumber}
+                  {school.contactNumber ? (
+                    <span>{school.contactNumber}</span>
+                  ) : (
+                    <i className="text-muted-foreground">Not provided</i>
+                  )}
                 </p>
               </div>
             </div>

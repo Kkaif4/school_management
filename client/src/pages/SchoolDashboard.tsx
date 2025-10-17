@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/Sidebar';
 import HomeContent from '@/components/school/HomeContent';
-import { School } from '@/types/school';
 import { schoolAPI } from '@/lib/api';
 import Students from '@/components/student/Students';
 import Users from '@/components/user/Users';
@@ -13,7 +12,6 @@ import { useSchoolStore } from '@/stores/schoolStore';
 const Dashboard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, logout } = useAuth();
-
   const { school, setSchool } = useSchoolStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'students' | 'teachers'>(

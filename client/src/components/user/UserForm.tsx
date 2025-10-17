@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
-import { error } from 'console';
 
 interface AddUserFormProps {
   schoolId: string;
@@ -63,10 +62,15 @@ export default function AddUserForm({
       onSuccess();
     } catch (err) {
       if (err) {
+        toast(err.response?.data?.validationErrors[0] || 'Signup failed');
         setErrors({
-          submit: err.response.data.message || err.message,
+          submit:
+            err.response.data.validationErrors[0] ||
+            err.response.data.message ||
+            err.message,
         });
       } else {
+        toast('Failed to add user. Please try again.');
         setErrors({ submit: 'Failed to add user. Please try again.' });
       }
     } finally {

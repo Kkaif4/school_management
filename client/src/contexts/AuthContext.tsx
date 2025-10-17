@@ -88,9 +88,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(userData);
     } catch (error) {
       if (error) {
-        toast(error.response.data.validationErrors[0] || 'Signup failed');
+        toast(error.response?.data?.validationErrors[0] || 'Signup failed');
         throw new Error(
-          error.response.data.validationErrors[0] || 'Signup failed'
+          error.response?.data?.validationErrors[0] || 'Signup failed'
         );
       }
     }

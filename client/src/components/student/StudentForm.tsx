@@ -161,7 +161,7 @@ export default function AddStudentForm({
         console.log('this is error: ', err);
         setErrors({
           submit:
-            err.response?.data?.validationErrors[0] ||
+            err.response?.data?.validationErrors?.[0] ||
             err.response?.data?.message ||
             err.message ||
             'Failed to add student. Please try again.',

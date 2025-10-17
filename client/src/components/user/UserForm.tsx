@@ -67,17 +67,14 @@ export default function AddUserForm({
       onSuccess();
     } catch (err) {
       if (err) {
+        const errorMessage =
+          err.response?.data?.validationErrors?.[0] ||
+          err.response?.data?.message ||
+          err.message;
         setErrors({
-          submit:
-            err.response?.data?.validationErrors[0] ||
-            err.response?.data?.message ||
-            err.message,
+          submit: errorMessage,
         });
-        toast(
-          err.response?.data?.validationErrors[0] ||
-            err.response?.data?.message ||
-            err.message
-        );
+        toast(errorMessage);
       } else {
         toast('Failed to add user. Please try again.');
         setErrors({ submit: 'Failed to add user. Please try again.' });

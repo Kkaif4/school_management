@@ -29,11 +29,11 @@ export class School {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   adminId: Types.ObjectId;
 
-  @Prop({ default: 'N/A' })
-  address: string;
+  @Prop({ required: false, default: null })
+  address?: string;
 
-  @Prop({ default: 'N/A' })
-  contactNumber: string;
+  @Prop({ required: false, default: null })
+  contactNumber?: string;
 
   @Prop({ default: 0 })
   totalStudents: number;

@@ -32,6 +32,7 @@ import { WelcomeBanner } from '@/components/WelcomeBanner';
 import { useNavigate } from 'react-router-dom';
 import { ProfileCard } from './ProfileCard';
 import { toast } from '@/components/ui/sonner';
+import WarningModal from '@/components/ui/warning';
 
 const AdminControlPanel = () => {
   const navigate = useNavigate();
@@ -40,6 +41,8 @@ const AdminControlPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [schoolToEdit, setSchoolToEdit] = useState<SchoolType | null>(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchSchools = async () => {
     try {
@@ -63,25 +66,27 @@ const AdminControlPanel = () => {
     setIsCreateModalOpen(true);
   };
 
-  const handleDeleteSchool = async (schoolId: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this school? This action cannot be undone.'
-      )
-    ) {
-      return;
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      await schoolAPI.deleteSchool(schoolId);
+      await schoolAPI.deleteSchool(itemToDelete);
       toast('School deleted successfully');
       fetchSchools();
     } catch (error) {
-      if (error && error.status === 404) {
-        toast.error('School not found');
-      } else {
-        toast.error('Failed to delete school');
-      }
+      toast.error(error.response.data.message);
+    } finally {
+      handleCloseModal();
     }
   };
 
@@ -214,12 +219,26 @@ const AdminControlPanel = () => {
                               <div className="space-y-1">
                                 <div className="text-sm flex items-center gap-1">
                                   <Phone className="h-3 w-3" />
-                                  {school.contactNumber}
+                                  {school.contactNumber ? (
+                                    <span>{school.contactNumber}</span>
+                                  ) : (
+                                    <i className="text-muted-foreground">
+                                      Not provided
+                                    </i>
+                                  )}
                                 </div>
                               </div>
                             </TableCell>
 
-                            <TableCell>{school.address}</TableCell>
+                            <TableCell>
+                              {school.address ? (
+                                <span>{school.address}</span>
+                              ) : (
+                                <i className="text-muted-foreground">
+                                  Not provided
+                                </i>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <div className="text-sm text-muted-foreground">
                                 {formatDate(school.createdAt)}
@@ -238,9 +257,7 @@ const AdminControlPanel = () => {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  onClick={() =>
-                                    handleDeleteSchool(school._id)
-                                  }>
+                                  onClick={() => handleDeleteClick(school._id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -266,6 +283,13 @@ const AdminControlPanel = () => {
         adminId={user?.id}
         schoolToEdit={schoolToEdit || undefined}
         isEditing={!!schoolToEdit}
+      />
+      <WarningModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message={`Are you sure you want to delete the certificate? This action cannot be undone.`}
       />
     </div>
   );

@@ -107,30 +107,45 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
     });
   };
 
+  const cleanData = (data: CreateSchoolFormData) => {
+    const cleaned = { ...data }; // Create a copy to avoid mutating the original
+    for (const key in cleaned) {
+      if (cleaned[key] === '') {
+        delete cleaned[key]; // Remove the key if its value is an empty string
+      }
+    }
+    return cleaned;
+  };
+
   const onSubmit = async (data: CreateSchoolFormData) => {
     setIsSubmitting(true);
     try {
+      const cleanedData = cleanData(data);
+
       const payload = {
-        ...data,
+        ...cleanedData,
         ...(isEditing
           ? {}
           : { studentFields: enableCustomFields ? studentFields : [] }),
       };
 
+      console.log('this is: ', payload);
       if (isEditing && schoolToEdit?._id) {
-        const res = await schoolAPI.updateSchool(schoolToEdit._id, payload);
-        sonnerToast(res.data.message);
+        const response = await schoolAPI.updateSchool(
+          schoolToEdit._id,
+          payload
+        );
+        sonnerToast(response.data.message);
       } else {
-        const res = await schoolAPI.createSchool(payload);
-        sonnerToast(res.data.message);
+        const response = await schoolAPI.createSchool(payload);
+        sonnerToast(response.data.message);
       }
 
       onSchoolCreated();
       handleClose();
     } catch (error) {
-      if (error) {
-        sonnerToast(error.res.data.message);
-      }
+      console.log(error);
+      sonnerToast(error.response.data.message || 'Failed to create school');
     } finally {
       setIsSubmitting(false);
     }

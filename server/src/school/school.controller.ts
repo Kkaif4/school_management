@@ -34,8 +34,11 @@ export class SchoolController {
 
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async create(@Body() createSchoolDto: CreateSchoolDto, @Req() req: Request) {
-    return await this.schoolService.create(req, createSchoolDto);
+  async create(
+    @Body() createSchoolDto: CreateSchoolDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return await this.schoolService.create(user, createSchoolDto);
   }
 
   @Get()

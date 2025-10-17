@@ -31,10 +31,10 @@ export class SchoolService {
   ) {}
 
   async create(
-    req: Request,
+    user: AuthUser,
     createSchoolDto: CreateSchoolDto,
   ): Promise<SchoolResponseDto> {
-    const adminId = req['user'].id.toString();
+    const adminId = user.id.toString();
     const admin = await this.userModel.findOne({
       _id: adminId,
     });

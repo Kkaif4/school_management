@@ -9,6 +9,7 @@ import { authAPI } from '../lib/api';
 
 import { UserRole } from '@/types/users';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/utils/api-error';
 
 export interface User {
   id: string;
@@ -70,10 +71,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
-      toast(res.data.data.message);
+      toast({
+        description: res.data.data.message,
+        variant: 'default',
+      });
     } catch (error) {
-      toast(error.response.data.message || 'Login failed');
-      throw new Error(error.response.data.message || 'Login failed');
+      const errorMessage = handleApiError(error, 'Login failed');
+      toast({
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      throw new Error(errorMessage);
     }
   };
 
@@ -84,15 +92,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { token, user: userData } = data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
-      toast(data.message);
+      toast({
+        description: data.message,
+        variant: 'default',
+      });
       setUser(userData);
     } catch (error) {
-      if (error) {
-        toast(error.response?.data?.validationErrors[0] || 'Signup failed');
-        throw new Error(
-          error.response?.data?.validationErrors[0] || 'Signup failed'
-        );
-      }
+      const errorMessage = handleApiError(error, 'Signup failed');
+      toast({
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      throw new Error(errorMessage);
     }
   };
 

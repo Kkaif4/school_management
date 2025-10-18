@@ -3,7 +3,6 @@ import { StudentFormData } from '@/types/student';
 import { UserFormData } from '@/types/users';
 import axios from 'axios';
 
-console.log('backend epi: ', import.meta.env.VITE_API_URL);
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {

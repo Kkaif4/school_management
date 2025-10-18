@@ -12,7 +12,7 @@ export interface School {
   principalName?: string;
   totalStudents?: number;
   totalTeachers?: number;
-  status?: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+  status?: 'ACTIVE' | 'INACTIVE';
   createdAt?: string;
   updatedAt?: string;
   contactNumber: string;

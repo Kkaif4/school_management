@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { certificateAPI } from '@/lib/api';
 import { X } from 'lucide-react';
 import { useCertificateStore } from '@/stores/certificateStore';
+import { handleApiError } from '@/utils/api-error';
 
 interface CertificateFormProps {
   schoolId: string;
@@ -44,13 +45,13 @@ export default function CertificateForm({
       fetchCertificates(schoolId);
       onSuccess?.();
       onClose();
-    } catch (err) {
-      if (err) {
-        setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            'Unexpected error occurred. Please try again.'
+    } catch (error) {
+      if (error) {
+        const errorMessage = handleApiError(
+          error,
+          'Failed to add certificate.'
         );
+        setError(errorMessage);
       }
     } finally {
       setLoading(false);

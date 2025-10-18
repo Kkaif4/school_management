@@ -4,6 +4,7 @@ import { studentSchema } from '@/types/student';
 import { RequiredLabel } from '../ui/RequiredLabel';
 import { studentAPI as addStudent } from '@/lib/api';
 import { toast } from '@/components/ui/sonner';
+import { handleApiError } from '@/utils/api-error';
 
 interface customField {
   name?: string;
@@ -156,15 +157,14 @@ export default function AddStudentForm({
       toast(res.data.message);
       onSuccess();
       onCancel();
-    } catch (err) {
-      if (err) {
-        console.log('this is error: ', err);
+    } catch (error) {
+      if (error) {
+        const errorMessage = handleApiError(
+          error,
+          'Failed to add student. Please try again.'
+        );
         setErrors({
-          submit:
-            err.response?.data?.validationErrors?.[0] ||
-            err.response?.data?.message ||
-            err.message ||
-            'Failed to add student. Please try again.',
+          submit: errorMessage,
         });
       }
     } finally {

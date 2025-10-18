@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
+import { handleApiError } from '@/utils/api-error';
 
 interface AddUserFormProps {
   schoolId: string;
@@ -65,12 +66,9 @@ export default function AddUserForm({
       const response = await userAPI.createUser(result.data);
       toast(response.data.message);
       onSuccess();
-    } catch (err) {
-      if (err) {
-        const errorMessage =
-          err.response?.data?.validationErrors?.[0] ||
-          err.response?.data?.message ||
-          err.message;
+    } catch (error) {
+      if (error) {
+        const errorMessage = handleApiError(error, 'Failed to create User');
         setErrors({
           submit: errorMessage,
         });

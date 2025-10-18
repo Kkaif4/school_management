@@ -28,6 +28,7 @@ import { Info, X } from 'lucide-react';
 import { RequiredLabel } from '../ui/RequiredLabel';
 import { toast as sonnerToast } from '../ui/sonner';
 import { toast } from '@/hooks/use-toast';
+import { handleApiError } from '@/utils/api-error';
 export type CreateSchoolFormData = z.infer<typeof createSchoolSchema> & {
   _id?: string;
   studentFields?: customField[];
@@ -108,10 +109,10 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
   };
 
   const cleanData = (data: CreateSchoolFormData) => {
-    const cleaned = { ...data }; // Create a copy to avoid mutating the original
+    const cleaned = { ...data };
     for (const key in cleaned) {
       if (cleaned[key] === '') {
-        delete cleaned[key]; // Remove the key if its value is an empty string
+        delete cleaned[key];
       }
     }
     return cleaned;
@@ -121,7 +122,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
     setIsSubmitting(true);
     try {
       const cleanedData = cleanData(data);
-
       const payload = {
         ...cleanedData,
         ...(isEditing
@@ -129,25 +129,21 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
           : { studentFields: enableCustomFields ? studentFields : [] }),
       };
 
+      let response: { data: any };
       if (isEditing && schoolToEdit?._id) {
-        const response = await schoolAPI.updateSchool(
-          schoolToEdit._id,
-          payload
-        );
-        sonnerToast(response.data.message);
+        response = await schoolAPI.updateSchool(schoolToEdit._id, payload);
       } else {
-        const response = await schoolAPI.createSchool(payload);
-        sonnerToast(response.data.message);
+        response = await schoolAPI.createSchool(payload);
       }
-
+      sonnerToast(response.data.message);
       onSchoolCreated();
       handleClose();
     } catch (error) {
-      sonnerToast(
-        error?.response?.data.message ||
-          error.message ||
-          'Failed to create school'
+      const errorMessage = handleApiError(
+        error,
+        `Failed to ${isEditing ? 'update' : 'create'} school`
       );
+      sonnerToast(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -176,7 +172,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* === Base Fields === */}
             <FormField
               control={form.control}
               name="name"
@@ -249,7 +244,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
               )}
             />
 
-            {/* === Custom Fields only in Create Mode === */}
             {!isEditing && (
               <>
                 <div className="flex items-center gap-2">
@@ -348,7 +342,6 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
                           <span className="text-sm">Required</span>
                         </div>
 
-                        {/* Remove Icon aligned right */}
                         <div className="md:col-span-2 flex justify-end">
                           <button
                             type="button"

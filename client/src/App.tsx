@@ -10,9 +10,9 @@ import { Toaster } from './components/ui/sonner';
 // Lazy loaded components
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Dashboard = lazy(() => import('./pages/SchoolDashboard'));
-
 const AdminControlPanel = lazy(() => import('./pages/AdminControlPanel'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Forbidden = lazy(() => import('./pages/Forbidden'));
 
 const queryClient = new QueryClient();
 
@@ -39,7 +39,8 @@ const App = () => (
               <Route
                 path="/dashboard/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={['teacher', 'sub_admin', 'admin']}>
                     <Dashboard />
                   </ProtectedRoute>
                 }
@@ -48,11 +49,14 @@ const App = () => (
               <Route
                 path="/admin/control-panel"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                     <AdminControlPanel />
                   </ProtectedRoute>
                 }
               />
+
+              {/* Forbidden Route */}
+              <Route path="/forbidden" element={<Forbidden />} />
 
               {/* Redirects */}
               <Route path="/index" element={<Navigate to="/" replace />} />

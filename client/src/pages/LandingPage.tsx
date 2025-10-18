@@ -23,27 +23,35 @@ const LandingPage = () => {
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (user) {
+      const parsedUser = JSON.parse(user);
       setIsAuthenticated(true);
-      setUserData(JSON.parse(user));
+      setUserData(parsedUser);
     }
   }, []);
 
   const handleDashboardClick = () => {
-    if (userData?.role === 'admin' || userData?.role === 'super_admin') {
+    if (!userData) return;
+
+    if (userData.role === 'admin' || userData.role === 'super_admin') {
       navigate('/admin/control-panel');
-    } else if (userData?.role === 'teacher' && userData?.schoolId) {
+    } else if (
+      ['teacher', 'sub_admin', 'user'].includes(userData.role) &&
+      userData.schoolId
+    ) {
       navigate(`/dashboard/${userData.schoolId}`);
     }
   };
 
   const renderAuthButtons = () => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userData) {
+      const isAdminUser =
+        userData.role === 'admin' || userData.role === 'super_admin';
       return (
         <Button
           variant="gradient"
           onClick={handleDashboardClick}
           className="flex items-center gap-2">
-          Go to Dashboard
+          {isAdminUser ? 'Control Panel' : 'School Dashboard'}
         </Button>
       );
     }

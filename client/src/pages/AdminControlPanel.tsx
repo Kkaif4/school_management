@@ -168,7 +168,7 @@ const AdminControlPanel = () => {
                     onClick={() => setIsCreateModalOpen(true)}
                     className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Add School
+                    Add Organization
                   </Button>
                 </div>
               </CardHeader>
@@ -181,7 +181,7 @@ const AdminControlPanel = () => {
                   <div className="text-center py-12">
                     <School className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">
-                      No schools found
+                      No organizations found
                     </h3>
                     <p className="text-muted-foreground mb-4">
                       Start by adding your first educational institution
@@ -191,7 +191,7 @@ const AdminControlPanel = () => {
                       onClick={() => setIsCreateModalOpen(true)}
                       className="gap-2">
                       <Plus className="h-4 w-4" />
-                      Add Your First School
+                      Add Your First Organization
                     </Button>
                   </div>
                 ) : (
@@ -199,7 +199,7 @@ const AdminControlPanel = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>School Name</TableHead>
+                          <TableHead>Name</TableHead>
                           <TableHead>Principal</TableHead>
                           <TableHead>Contact</TableHead>
 

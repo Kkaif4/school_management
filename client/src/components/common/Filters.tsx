@@ -27,29 +27,31 @@ export default function Filters({
 
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
-      <div className="flex flex-wrap gap-3 sm:gap-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {/* 🔹 Search Input (Mandatory) */}
-        <div className="relative flex-1 min-w-[140px] max-w-[200px] sm:max-w-none">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+        <div className="relative w-[200px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
           <input
             type="text"
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md 
-                       focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md 
+                       focus:ring-1 focus:ring-indigo-200 focus:border-indigo-500"
           />
         </div>
 
         {/* 🔹 Grade Filter (Optional) */}
         {selectedGrade !== undefined && onGradeChange && (
-          <div className="relative flex-1 min-w-[120px] max-w-[160px] sm:max-w-none">
-            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          // CHANGED: Width reduced from w-[110px] to w-[90px]
+          <div className="relative w-[90px]">
+            <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
             <select
               value={selectedGrade}
               onChange={(e) => onGradeChange(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md 
-                         focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 bg-white">
+              // CHANGED: Added 'appearance-none' for consistent styling
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md 
+                         focus:ring-1 focus:ring-indigo-200 focus:border-indigo-500 bg-white text-center appearance-none">
               <option value="all">All</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((grade) => (
                 <option key={grade} value={grade}>
@@ -62,13 +64,14 @@ export default function Filters({
 
         {/* 🔹 Division Filter (Optional) */}
         {selectedDivision !== undefined && onDivisionChange && (
-          <div className="relative flex-1 min-w-[120px] max-w-[160px] sm:max-w-none">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          // CHANGED: Width reduced from w-[100px] to w-[90px] for consistency
+          <div className="relative w-[90px]">
+            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
             <select
               value={selectedDivision}
               onChange={(e) => onDivisionChange(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md 
-                         focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 bg-white">
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md 
+                         focus:ring-1 focus:ring-indigo-200 focus:border-indigo-500 bg-white text-center appearance-none">
               <option value="all">All</option>
               {Divisions.map((division) => (
                 <option key={division} value={division}>

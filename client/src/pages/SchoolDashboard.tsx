@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { TabType } from '@/components/Sidebar';
 import HomeContent from '@/components/school/HomeContent';
 import { schoolAPI } from '@/lib/api';
 import Students from '@/components/student/Students';
@@ -14,10 +14,7 @@ const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const { school, setSchool } = useSchoolStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'students' | 'teachers'>(
-    'home'
-  );
-
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +48,7 @@ const Dashboard: React.FC = () => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onLogout={logout}
+        userRole={user.role}
       />
 
       <div className="flex-1 flex flex-col">

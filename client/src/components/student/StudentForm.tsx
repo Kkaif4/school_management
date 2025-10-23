@@ -245,7 +245,8 @@ export default function AddStudentForm({
       {customField.length > 0 && (
         <div>
           <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-            <BookOpen className="h-5 w-5 text-indigo-500" /> Extra Information
+            <BookOpen className="h-5 w-5 text-indigo-500" /> Additional
+            Information
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {customField.map((field, index) => (

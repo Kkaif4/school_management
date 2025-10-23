@@ -51,7 +51,7 @@ const LandingPage = () => {
           variant="gradient"
           onClick={handleDashboardClick}
           className="flex items-center gap-2">
-          {isAdminUser ? 'Control Panel' : 'School Dashboard'}
+          {isAdminUser ? 'Control Panel' : 'Dashboard'}
         </Button>
       );
     }

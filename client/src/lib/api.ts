@@ -83,7 +83,18 @@ export const certificateAPI = {
     schoolId: string,
     studentId: string,
     certificateId: string
-  ) => api.get(`/certificate/${schoolId}/${studentId}/${certificateId}`),
+  ) =>
+    api.post(
+      `/certificate/getCertificate`,
+      {
+        schoolId,
+        studentId,
+        certificateId,
+      },
+      {
+        responseType: 'blob',
+      }
+    ),
 
   getCertificateById: (id: string) => api.get(`/certificate/${id}`),
 

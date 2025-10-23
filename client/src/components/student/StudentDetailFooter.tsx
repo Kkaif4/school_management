@@ -20,12 +20,9 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
   const [showLogs, setShowLogs] = useState(false);
   const [printError, setError] = useState<string | null>(null);
   const { certificates, loading } = useCertificateStore();
-
   const [logs, setLogs] = useState<Log[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
-
   const [printingDocument, setPrintingDocument] = useState<string | null>(null);
-
   const { school } = useSchoolStore();
 
   const fetchLogs = useCallback(async () => {
@@ -53,41 +50,50 @@ const StudentDetailFooter = ({ student }: StudentDetailFooterProps) => {
         student._id!,
         docId
       );
-
-      const htmlContent =
-        typeof response.data?.data.data === 'string'
-          ? response.data.data.data
-          : JSON.stringify(response.data?.data.data ?? '');
-
+      console.log('response', response.data);
+      const pdfUrl = URL.createObjectURL(response.data);
       const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      iframe.style.visibility = 'hidden';
+      iframe.style.display = 'none';
+      iframe.src = pdfUrl;
+
       document.body.appendChild(iframe);
 
-      const iframeDoc =
-        iframe.contentDocument || iframe.contentWindow?.document;
-      if (!iframeDoc) throw new Error('Unable to access iframe document.');
-
-      iframeDoc.open();
-      iframeDoc.write(htmlContent);
-      iframeDoc.close();
-
       iframe.onload = () => {
-        try {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        } finally {
-          document.body.removeChild(iframe);
-          toast.success('Certificate printed successfully');
+        if (iframe.contentWindow) {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+
+          const cleanup = () => {
+            console.log('Print dialog closed. Cleaning up iframe.');
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(pdfUrl);
+          };
+
+          iframe.contentWindow.onafterprint = cleanup;
+          setTimeout(cleanup, 1000);
         }
       };
     } catch (err: any) {
-      console.error('Certificate Print Error:', err);
-      setError(err?.message || 'Error generating certificate preview.');
-      toast.error('Failed to print certificate');
+      console.log('error', err.response.data.message || err.message);
+      if (err.response && err.response.data) {
+        const errorBlob = err.response.data;
+        console.log({ errorBlob });
+        const errorText = await errorBlob.text();
+        console.log('errorText', errorText);
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('API Error:', errorJson.message);
+          setError(errorJson.message || 'Error generating certificate.');
+          toast.error(errorJson.message);
+        } catch (jsonParseError) {
+          console.error('Failed to parse error response:', errorText);
+          toast.error('An unknown error occurred.');
+        }
+      } else {
+        console.error('Certificate Print Error:', err.message);
+        setError(err?.message || 'Error generating certificate preview.');
+        toast.error('Failed to print certificate');
+      }
     } finally {
       setPrintingDocument(null);
     }

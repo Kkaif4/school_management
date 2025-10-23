@@ -1,22 +1,33 @@
-import { Home, Users, GraduationCap, X, LogOut } from 'lucide-react';
+import {
+  X,
+  Home,
+  Users,
+  LogOut,
+  SettingsIcon,
+  GraduationCap,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+export type TabType = 'home' | 'students' | 'teachers' | 'controlPanel';
+
 interface SidebarProps {
-  activeTab: 'home' | 'students' | 'teachers';
-  setActiveTab: (tab: 'home' | 'students' | 'teachers') => void;
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   onLogout: () => void;
-  userRole?: 'super_admin' | 'admin' | 'sub_admin' | 'teacher';
+  userRole: 'super_admin' | 'admin' | 'sub_admin' | 'teacher';
 }
 
 const allSidebarItems = {
   super_admin: [
+    { id: 'controlPanel', label: 'Control Panel', icon: SettingsIcon },
     { id: 'home', label: 'Home', icon: Home },
     { id: 'students', label: 'Students', icon: GraduationCap },
     { id: 'teachers', label: 'Teachers', icon: Users },
   ],
   admin: [
+    { id: 'controlPanel', label: 'Control Panel', icon: SettingsIcon },
     { id: 'home', label: 'Home', icon: Home },
     { id: 'students', label: 'Students', icon: GraduationCap },
     { id: 'teachers', label: 'Teachers', icon: Users },
@@ -40,8 +51,20 @@ export default function Sidebar({
   onLogout,
   userRole = 'admin',
 }: SidebarProps) {
-  const sidebarItems = allSidebarItems[userRole];
+  const sidebarItems = allSidebarItems[userRole] || allSidebarItems.teacher; // Default to teacher if role not found
   const navigate = useNavigate();
+
+  const handleItemClick = (itemId: TabType) => {
+    setActiveTab(itemId);
+    setSidebarOpen(false);
+
+    // Special handling for control panel
+    if (itemId === 'controlPanel') {
+      navigate('/admin/control-panel');
+      return;
+    }
+  };
+
   return (
     <div
       className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
@@ -69,10 +92,7 @@ export default function Sidebar({
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => {
-                    setActiveTab(item.id as 'home' | 'students' | 'teachers');
-                    setSidebarOpen(false);
-                  }}
+                  onClick={() => handleItemClick(item.id as TabType)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors ${
                     activeTab === item.id
                       ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-600'

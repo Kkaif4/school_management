@@ -29,6 +29,9 @@ import { RequiredLabel } from '../ui/RequiredLabel';
 import { toast as sonnerToast } from '../ui/sonner';
 import { toast } from '@/hooks/use-toast';
 import { handleApiError } from '@/utils/api-error';
+
+import { countryCodesList } from '@/assets/countryCodes';
+
 export type CreateSchoolFormData = z.infer<typeof createSchoolSchema> & {
   _id?: string;
   studentFields?: customField[];
@@ -55,6 +58,9 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
   const [enableCustomFields, setEnableCustomFields] = useState(false);
   const [studentFields, setCustomFields] = useState<customField[]>([]);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<
+    (typeof countryCodesList)[number]['code']
+  >(countryCodesList[0].code);
 
   const form = useForm<CreateSchoolFormData>({
     resolver: zodResolver(createSchoolSchema),
@@ -81,6 +87,17 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
       });
       if (!isEditing) {
         setCustomFields(schoolToEdit?.studentFields || []);
+      }
+
+      // Set country code from existing phone number if it exists
+      if (schoolToEdit?.contactNumber) {
+        const phoneNumber = schoolToEdit.contactNumber;
+        const countryCode = countryCodesList.find((cc) =>
+          phoneNumber.startsWith(cc.code)
+        );
+        if (countryCode) {
+          setSelectedCountryCode(countryCode.code);
+        }
       }
     }
   }, [open, schoolToEdit, adminId, isEditing, form]);
@@ -220,9 +237,39 @@ export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contact Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter phone number" {...field} />
-                  </FormControl>
+                  <div className="flex gap-2">
+                    <select
+                      className="w-28 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      value={selectedCountryCode}
+                      onChange={(e) =>
+                        setSelectedCountryCode(
+                          e.target.value as typeof selectedCountryCode
+                        )
+                      }>
+                      {countryCodesList.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.code} {country.country}
+                        </option>
+                      ))}
+                    </select>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        placeholder="Enter phone number"
+                        {...field}
+                        value={
+                          field.value
+                            ? field.value.replace(selectedCountryCode, '')
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          field.onChange(selectedCountryCode + value);
+                        }}
+                        className="flex-1"
+                      />
+                    </FormControl>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

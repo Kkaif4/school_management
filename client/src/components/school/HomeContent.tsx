@@ -107,7 +107,7 @@ export default function HomeContent({ school }: HomeContentProps) {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 space-y-6">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
-          School Information
+          Organization Information
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -119,7 +119,9 @@ export default function HomeContent({ school }: HomeContentProps) {
                 <Home className="h-5 w-5 text-gray-600" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm text-gray-500">School Name</p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Name
+                </p>
                 <p className="font-medium text-gray-900 break-words">
                   {school.name}
                 </p>
